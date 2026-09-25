@@ -55,10 +55,18 @@ def check(node, sentence, offset, mapping):
 
 
 def evaluate(rule, passage):
+    return list(iter_evaluate(rule, passage))
+
+
+def iter_evaluate(rule, passage, cancel=None):
+    """Yield traces incrementally so the caller can budget evidence and cancel."""
     validate_rule(rule)
+    if cancel and cancel.is_set():
+        raise KeyboardInterrupt
     normal, mapping = normalise(passage["text"])
-    results = []
     for match in re.finditer(r"[^.!?;]+(?:[.!?;]|$)", normal):
+        if cancel and cancel.is_set():
+            raise KeyboardInterrupt
         sentence = match.group()
         ok, spans, trace = check(rule, sentence, match.start(), mapping)
         # A relevant phrase is a retrieval candidate, not evidence of completeness.
@@ -68,6 +76,5 @@ def evaluate(rule, passage):
         negative = bool(NEGATIVE.search(sentence))
         ambiguous = bool(AMBIGUITY.search(sentence)) or sentence.strip().startswith(('"', '“', '>')) or bool(re.search(r'\b(?:background|glossary|definitions|examples|quoted material)\b', passage['locator'].get('heading',''), re.I))
         state = "Contradiction" if negative else "Ambiguous" if ambiguous else "Matched" if ok else "Missing"
-        results.append(dict(state=state, matchedSpans=spans, checks=trace,
-                            context="same_sentence", ruleSatisfied=ok and not negative and not ambiguous))
-    return results
+        yield dict(state=state, matchedSpans=spans, checks=trace,
+                   context="same_sentence", ruleSatisfied=ok and not negative and not ambiguous)

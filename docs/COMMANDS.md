@@ -25,6 +25,12 @@ and eight million extracted characters per comparison. Scanned PDFs need OCR
 before import. Nested ZIPs and unsupported files are listed as skipped. Unsafe
 archives are rejected and duplicate documents are counted once.
 
+Rule-based analysis also limits generated evidence to 10,000 records and 16 MiB
+of serialized evidence per comparison. If either limit is reached, the analysis
+stops without saving partial results; split the inputs into smaller comparisons.
+Existing saved assessments remain readable. Opening an original document from a
+saved assessment requires a supported local file type and an unchanged hash.
+
 The CLI returns code 0 on success and 7 when results contain limitations, such as
 unreadable documents or failed framework updates. Other failures return nonzero
 codes and an error message. JSON output includes status, warnings and errors.

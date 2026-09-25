@@ -1,14 +1,16 @@
 """Versioned SQLite assessments; application-owned schema and transactional writes."""
 from contextlib import contextmanager, closing
+import hashlib
 import json
+import ntpath
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import sqlite3
 import uuid
 from functools import wraps
 
 from .contracts import PolicyError, canonical, validate_run
-from .documents import local_file
+from .documents import FORMATS, local_file
 from .service import review_event, now
 
 APPLICATION_ID = 1463894851
@@ -203,13 +205,45 @@ def snapshot(source, target, force=False):
                 stage.unlink()
 
 
+def original_source(doc):
+    """Authorize a saved source for opening, then hash the exact absolute path."""
+    raw = doc.get('path')
+    if not isinstance(raw, str) or not raw or ntpath.isreserved(raw):
+        raise PolicyError('The saved source has an unsafe Windows path.')
+    path = local_file(raw)
+    suffix = path.suffix.lower()
+    recorded_format = doc.get('format')
+    recorded_format = recorded_format.lower() if isinstance(recorded_format, str) else None
+    member = doc.get('archiveMember')
+    if suffix == '.zip':
+        if (not isinstance(member, str) or not member or recorded_format not in FORMATS
+                or PurePosixPath(member).suffix.lower() != recorded_format or not doc.get('archiveHash')):
+            raise PolicyError('The saved ZIP source has inconsistent document metadata.')
+    elif (suffix not in FORMATS or recorded_format != suffix
+          or member is not None or 'archiveHash' in doc):
+        raise PolicyError('Only PDF, DOCX, TXT, Markdown and recorded ZIP sources can be opened.')
+    if not _source_matches(doc, path):
+        raise PolicyError('Source unavailable or changed; its saved location is stale.')
+    return path
+
+
+def _source_matches(doc, path):
+    if not path.is_file():
+        raise PolicyError('Source unavailable.')
+    if path.stat().st_size > documents_limit():
+        return False
+    with path.open('rb') as handle:
+        data = handle.read(documents_limit() + 1)
+    return (len(data) <= documents_limit()
+            and hashlib.sha256(data).hexdigest() == doc.get('archiveHash', doc['sha256']))
+
+
 def verify_sources(state):
-    import hashlib
     output = []
     for doc in state["run"]["documents"]:
         try:
             path = local_file(doc["path"])
-            matches = path.stat().st_size <= documents_limit() and hashlib.sha256(path.read_bytes()).hexdigest() == doc.get('archiveHash', doc["sha256"])
+            matches = _source_matches(doc, path)
             status = "Unchanged" if matches else "Changed — source location is stale"
         except (OSError, PolicyError):
             status = "Unavailable"

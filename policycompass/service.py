@@ -7,7 +7,11 @@ import uuid
 
 from . import ENGINE_VERSION, SCHEMA_VERSION
 from . import alignment, corpus, documents, rules
-from .contracts import AUTOMATED, REVIEWED, PolicyError, fingerprint, canonical_payload, validate_run
+from .contracts import AUTOMATED, REVIEWED, PolicyError, canonical, fingerprint, canonical_payload, validate_run
+
+# Generation limits do not change the contract of historical saved assessments.
+MAX_EVIDENCE_RECORDS = 10_000
+MAX_EVIDENCE_BYTES = 16 * 1024 * 1024
 
 
 def now():
@@ -49,21 +53,23 @@ def analyse(paths, name="Framework alignment", scope="Selected policy documents"
     active = [d for d in imported if d["included"]]
     incomplete = not active or any(d["status"] != "Ready" for d in active)
     findings = []
+    evidence_count, evidence_bytes = 0, 0
     for req in deepcopy(baseline["requirements"]):
         if cancel and cancel.is_set():
             raise KeyboardInterrupt
         evidence, atom_results = [], []
+        evidence_ids = set()
         for atom in req["obligations"]:
-            states = []
+            states = set()
             if atom["rule"]:
                 # Complete bounded lexical scan; no top-K truncation or cross-sentence joins.
                 for doc in active:
                     for passage in doc["passages"]:
-                        for trace in rules.evaluate(atom["rule"], passage):
+                        for trace in rules.iter_evaluate(atom["rule"], passage, cancel):
                             state = trace["state"]
                             if state == "Matched" and doc["approvalStatus"] != "approved":
                                 state = "Ambiguous"
-                            states.append(state)
+                            states.add(state)
                             if state == "Missing":
                                 continue
                             entry = dict(documentId=doc["id"], documentHash=doc["sha256"], passageId=passage["id"],
@@ -72,9 +78,18 @@ def analyse(paths, name="Framework alignment", scope="Selected policy documents"
                                          ruleVersion=atom["ruleVersion"], corpusVersion=baseline["version"],
                                          state=state, relation="Direct", matchStrength="Strong" if state == "Matched" else "Unknown",
                                          context=trace["context"], limitations=list(doc["warnings"]))
-                            entry["id"] = fingerprint(entry)
-                            if entry not in evidence:
+                            encoded = canonical(entry).encode('utf-8')
+                            # Include the added SHA-256 id field and array separator.
+                            size = len(encoded) + 73
+                            if (evidence_count >= MAX_EVIDENCE_RECORDS
+                                    or evidence_bytes + size > MAX_EVIDENCE_BYTES):
+                                raise PolicyError('Analysis exceeds the evidence limit. Split the documents into smaller comparisons.')
+                            entry["id"] = hashlib.sha256(encoded).hexdigest()
+                            if entry['id'] not in evidence_ids:
                                 evidence.append(entry)
+                                evidence_ids.add(entry['id'])
+                                evidence_count += 1
+                                evidence_bytes += size
             atom_state = ("NotAssessed" if not atom["rule"] else "Conflict" if "Contradiction" in states and "Matched" in states
                           else "Ambiguous" if any(s in states for s in ("Ambiguous", "Contradiction"))
                           else "Matched" if "Matched" in states else "Missing")
