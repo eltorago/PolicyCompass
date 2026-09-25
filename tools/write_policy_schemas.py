@@ -103,7 +103,7 @@ def generate():
             required=['schemaVersion','operation','status','warnings','errors'],extra=True)
     folder=ROOT/'schemas/policy';folder.mkdir(parents=True,exist_ok=True)
     for name,schema in [('run',run),('corpus',corpus),('cli',cli)]:
-        schema.update({'$schema':'https://json-schema.org/draft/2020-12/schema','$id':'https://wacc.local/schemas/policy/'+name+'/1.0','$defs':referenced_definitions(schema,defs)})
+        schema.update({'$schema':'https://json-schema.org/draft/2020-12/schema','$id':'https://policycompass.local/schemas/policy/'+name+'/1.0','$defs':referenced_definitions(schema,defs)})
         (folder/(name+'.schema.json')).write_text(json.dumps(schema,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 
 

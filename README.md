@@ -22,16 +22,16 @@ this repository. The [user guide](policycompass/README.md) covers the full workf
 
 ```powershell
 python -m policycompass corpus update --framework ism
-python -m policycompass compare examples/framework-alignment --framework ism --scope "Fictional example policies" --assessment example.wacc --format json
-python -m policycompass report example.wacc --format html --output report.html
+python -m policycompass compare examples/framework-alignment --framework ism --scope "Fictional example policies" --assessment example.policycompass --format json
+python -m policycompass report example.policycompass --format html --output report.html
 ```
 
 Comparisons and exports retain supporting passages and source locations. Results
 are **Mentioned**, **Related wording**, **Not mentioned** or **Unable to check**;
 these describe document alignment, not certification of compliance.
 
-Existing WACC `.wacc` files remain readable, with their original framework
-snapshots and history. See [migration notes](docs/MIGRATION.md).
+Comparisons use `.policycompass` files and retain their framework snapshots and
+history. See [configuration and saved files](docs/MIGRATION.md).
 
 ## Development
 
@@ -42,5 +42,4 @@ python -m unittest discover -s tests -v
 
 See [testing](tests/README.md) and [Windows builds](docs/BUILD.md).
 The desktop and CLI share `policycompass/`; `framework_core/` contains the
-framework models, vocabulary and loaders extracted from WACC. The original WACC
-control workspace and operational reporting are maintained separately.
+framework models, vocabulary and loaders used by the application.

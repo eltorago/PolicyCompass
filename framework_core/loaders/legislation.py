@@ -65,7 +65,7 @@ NAMED_DOCUMENTS: List[Tuple[str, Optional[str], str]] = [
     (
         "Essential Eight Maturity Model",
         None,
-        "not linked — WACC can import the November 2023 model, but the edition and "
+        "not linked — PolicyCompass can import the November 2023 model, but the edition and "
         "maturity level required by this provision need a separate incorporation review",
     ),
     (

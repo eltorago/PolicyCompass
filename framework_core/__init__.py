@@ -1,1 +1,1 @@
-"""Framework models and loaders extracted from WACC; no application dependency."""
+"""Shared framework models and loaders; no application dependency."""

@@ -40,7 +40,7 @@ def connect(path, read_only=False):
     if path.exists():
         with path.open('rb') as handle:
             if handle.read(16) != b"SQLite format 3\x00":
-                raise PolicyError("This is not a SQLite .wacc assessment.")
+                raise PolicyError("This is not a SQLite .policycompass assessment.")
     uri = path.as_uri() + ("?mode=ro" if read_only else "?mode=rw")
     connection = sqlite3.connect(uri, uri=True, timeout=0.5)
     connection.enable_load_extension(False)
@@ -113,8 +113,8 @@ def load(path, run_id=None):
 def save(path, run):
     validate_run(run)
     path = local_file(path)
-    if path.suffix.lower() != ".wacc":
-        raise PolicyError("Assessment filenames must end in .wacc.", 6)
+    if path.suffix.lower() != ".policycompass":
+        raise PolicyError("Assessment filenames must end in .policycompass.", 6)
     with locked(path):
         if path.exists():
             previous = load(path)

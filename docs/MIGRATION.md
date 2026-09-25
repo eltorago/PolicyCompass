@@ -1,52 +1,43 @@
-# Transfer from WACC
+# Configuration and saved files
 
-PolicyCompass was extracted from the local WACC policy application on
-25 September 2026. The source checkout was based on WACC commit
-`429502846a256b53ee5a0eb04f9331c78a0175ce` plus its uncommitted separation into
-`framework_alignment/` and `framework_core/`.
+PolicyCompass includes the desktop, CLI, document and ZIP import, local matching,
+saved comparisons and history, reports, framework updates and signed corpus
+package verification. Shared framework models and loaders live in `framework_core/`.
 
-The application is now `policycompass/`. It includes the desktop, CLI, document
-and ZIP import, deterministic alignment, saved comparisons and history, reports,
-framework imports and updates, and signed corpus package verification. Framework
-models, source metadata, vocabulary and loaders are retained in `framework_core/`
-so PolicyCompass can run from its own checkout without installing WACC.
+## Saved comparisons
 
-The transfer completes the unfinished split's launch command, worker imports,
-asset paths, WA parser location, requirement-file includes and executable build.
-The interface and reports use PolicyCompass branding. The comparison algorithm
-is carried across; framework relationships do not transfer matches automatically.
+New comparisons and snapshots use `.policycompass`. Existing SQLite comparisons
+remain readable regardless of their filename extension: select **All files** in
+Open, then **Save a copy** with the new extension. Historical runs retain their
+original engine version, evidence, identifiers and framework snapshots. New runs
+use PolicyCompass obligation identifiers. Original policy documents are needed
+only to reopen a source or make a new comparison.
 
-## Existing work
+Signed corpus packages use `.policycompasspack`. Reinstall previously downloaded
+packages with `python -m policycompass corpus install <package-path>` to store them
+under the current extension. Verification checks package contents and signatures,
+not the input filename extension.
 
-Open existing `.wacc` files directly. The SQLite format, schema version, legacy
-obligation identifiers and corpus signatures are preserved. Historical runs keep
-their original engine version, evidence and framework snapshots. Original policy
-documents are needed only to reopen their source or make a new comparison.
+## Local configuration
 
-The new default framework cache is `%LOCALAPPDATA%/PolicyCompass/frameworks`;
+The default framework cache is `%LOCALAPPDATA%/PolicyCompass/frameworks`;
 signed corpus packages use `%LOCALAPPDATA%/PolicyCompass/corpus`.
-Explicit configuration accepts:
 
-| Setting | Purpose | Legacy alias |
-|---|---|---|
-| `POLICYCOMPASS_LIBRARY` | Prepared library containing `sources/files` and `data/corpus` | `WACC_LIBRARY` |
-| `POLICYCOMPASS_FRAMEWORK_CACHE` | Downloaded/imported framework cache | `WACC_FRAMEWORK_CACHE` |
+| Setting | Purpose |
+|---|---|
+| `POLICYCOMPASS_LIBRARY` | Prepared library containing `sources/files` and `data/corpus` |
+| `POLICYCOMPASS_FRAMEWORK_CACHE` | Downloaded/imported framework cache |
+| `POLICYCOMPASS_SOURCES` | Prepared publisher-file cache for direct `framework_core` use |
 
-The PolicyCompass setting takes precedence. To reuse an existing WACC cache,
-point the new setting at that cache, or import the publisher files through
-Framework updates. Existing installations are not modified automatically.
+Use these names in existing shell and launch configurations. To reuse a prepared
+library or framework cache, set the appropriate path or import the publisher
+files through Framework updates. The application passes an explicit library path
+to its framework loaders; the standalone source setting applies to direct loader
+use. Existing installations are not modified automatically.
 
-## Repository boundary
+## Source data
 
-No WACC source files were removed or edited during this transfer. WACC's control
-workspace, web server, Sentinel and implementation-report workflows are not part
-of PolicyCompass. The WACC pull request and its branch remain separate.
-
-Publisher documents, extracted publisher corpora, personal assessments, local
-dependencies and generated builds are excluded from Git. `sources/permissions.json`
-and `sources/acquisition.json` preserve the original source provenance records;
+Publisher documents, extracted corpora, personal comparisons, local dependencies
+and generated builds are excluded from Git. `sources/permissions.json` and
+`sources/acquisition.json` retain source provenance and permission conditions;
 they are not a new permission review or a licence for the application.
-
-The framework component is vendored at the source revision above. Until it is
-published as a shared package, loader fixes must be deliberately synchronised
-between the two projects.

@@ -161,7 +161,7 @@ class Desktop(ttk.Frame):
     def open(self):
         if self.busy:
             return
-        path = filedialog.askopenfilename(parent=self, filetypes=[("Policy comparison (.wacc)", "*.wacc")])
+        path = filedialog.askopenfilename(parent=self, filetypes=[("Policy comparison (.policycompass)", "*.policycompass"), ("All files", "*.*")])
         if path:
             self.load(path)
 
@@ -219,7 +219,7 @@ class Desktop(ttk.Frame):
             if not values["Scope"].get().strip() or not selected.size():
                 messagebox.showerror("Scope required", "Describe the scope and select at least one document.", parent=dialog)
                 return
-            path = destination or filedialog.asksaveasfilename(parent=dialog, defaultextension=".wacc", filetypes=[("Policy comparison (.wacc)", "*.wacc")])
+            path = destination or filedialog.asksaveasfilename(parent=dialog, defaultextension=".policycompass", filetypes=[("Policy comparison (.policycompass)", "*.policycompass")])
             if not path:
                 return
             options = dict(paths=list(selected.get(0, "end")), name=values["Name"].get(), scope=values["Scope"].get(),
@@ -436,7 +436,7 @@ class Desktop(ttk.Frame):
     def snapshot(self):
         if not self.path:
             return
-        path = filedialog.asksaveasfilename(parent=self, defaultextension=".wacc", filetypes=[("Policy comparison (.wacc)", "*.wacc")])
+        path = filedialog.asksaveasfilename(parent=self, defaultextension=".policycompass", filetypes=[("Policy comparison (.policycompass)", "*.policycompass")])
         if path:
             self.guarded(lambda: store.snapshot(self.path, path))
 

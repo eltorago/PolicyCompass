@@ -1,4 +1,4 @@
-"""Describe every framework WACC can load and where it appears in the source browser.
+"""Describe every framework PolicyCompass can load and where it appears in the source browser.
 
 This file records publisher, jurisdiction, source file, display order and reuse status.
 The loaders use that information to find documents and preserve their identity.
@@ -49,7 +49,7 @@ FRAMEWORKS: List[Framework] = [
             "© State of Western Australia 2026. CC BY 4.0. Based on content from the "
             "Western Australian Legislation website at 17 September 2026. For the latest "
             "information on Western Australian legislation, visit www.legislation.wa.gov.au. "
-            "WACC structures the provisions and adds local control mappings."
+            "PolicyCompass structures the provisions and adds local control mappings."
         ),
         notes=[
             "July 2026 consolidation: 11 Information Privacy Principles and five responsible sharing principles, with supporting sections.",
@@ -418,7 +418,7 @@ FRAMEWORKS: List[Framework] = [
         notes=[
             "The 2026 edition adds Shadow Credentials controls and changes the DCSync "
             "permission review and planned KRBTGT rotation intervals to six months.",
-            "Its checklist states concrete AD hardening measures, so WACC loads it as "
+            "Its checklist states concrete AD hardening measures, so PolicyCompass loads it as "
             "technical control detail rather than general guidance.",
         ],
     ),
@@ -520,7 +520,7 @@ FRAMEWORKS.extend([
         revision_source='ASD principles page and September 2026 attachment; statements verified against ISM OSCAL 2026.09.4',
         source_file='ISM_catalog.json',source_files=['asd-cyber-security-principles-2026-09.html'],
         source_url='https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles',
-        attribution='Australian Signals Directorate, Commonwealth of Australia 2026. CC BY 4.0. Principle titles, identifiers and statements preserved; workspace mappings are WACC additions.',
+        attribution='Australian Signals Directorate, Commonwealth of Australia 2026. CC BY 4.0. Principle titles, identifiers and statements preserved; workspace mappings are PolicyCompass additions.',
         notes=['49 principles across Govern, Identify, Protect, Detect, Respond and Recover.',
                'Loaded from the ISM-principle class in the official ISM OSCAL catalogue and displayed once in this separate framework.']),
     Framework(key='asd-strategies',name='ASD Strategies to Mitigate Cyber Security Incidents',short_name='ASD mitigation strategies',
@@ -530,8 +530,8 @@ FRAMEWORKS.extend([
         revision_source='Publisher last-updated date and February 2017 attachment edition',
         source_file='asd-strategies-2017.html',
         source_url='https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/mitigating-cyber-security-incidents/strategies-to-mitigate-cybersecurity-incidents',
-        attribution='Australian Signals Directorate, Commonwealth of Australia 2017. CC BY 4.0. Strategy wording preserved; WACC adds row locators and local mappings.',
-        notes=['37 strategies in five categories. S01-S37 are WACC locators, not ASD identifiers.',
+        attribution='Australian Signals Directorate, Commonwealth of Australia 2017. CC BY 4.0. Strategy wording preserved; PolicyCompass adds row locators and local mappings.',
+        notes=['37 strategies in five categories. S01-S37 are PolicyCompass locators, not ASD identifiers.',
                'February 2017 edition: legacy software references and thresholds are historical. Current ISM and Essential Eight requirements must be assessed separately.']),
     Framework(key='scuba',name='CISA SCuBA Microsoft 365 security baselines',short_name='SCuBA M365',
         publisher='CISA',jurisdiction=Jurisdiction.US,tier=Tier.SPECIFICATION,intra_tier_order=1,
@@ -551,7 +551,7 @@ FRAMEWORKS.extend([
         source_url='https://github.com/securecontrolsframework/securecontrolsframework',
         attribution='Secure Controls Framework (SCF), SCF Council, CC BY-ND 4.0. Control wording imported without alteration. https://securecontrolsframework.com/terms-and-conditions',
         notes=['SCF is a meta-framework. Its mappings are assertions by SCF, not endorsements by the target publishers.',
-               'Local import only. CC BY-ND 4.0 restricts distribution of adapted SCF material. WACC technical checks are authored independently from ACSC and Microsoft guidance.']),
+               'Local import only. CC BY-ND 4.0 restricts distribution of adapted SCF material. PolicyCompass technical checks are authored independently from ACSC and Microsoft guidance.']),
     Framework(key='essential-eight',name='ASD Essential Eight maturity model',short_name='Essential Eight',
         publisher='Australian Signals Directorate',jurisdiction=Jurisdiction.AU_COMMONWEALTH,
         tier=Tier.OUTCOME,intra_tier_order=5,fidelity=Fidelity.PUBLISHER_IMPORT,
@@ -560,7 +560,7 @@ FRAMEWORKS.extend([
         source_file='essential-eight-maturity-model.html',
         source_url='https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model',
         attribution='Australian Signals Directorate, Commonwealth of Australia 2023. CC BY 4.0.',
-        notes=['Imported from the publisher tables. Row identifiers are WACC locators, not ASD-issued control identifiers.']),
+        notes=['Imported from the publisher tables. Row identifiers are PolicyCompass locators, not ASD-issued control identifiers.']),
     Framework(key='mcsb',name='Microsoft cloud security benchmark v1',short_name='MCSB v1',
         publisher='Microsoft',jurisdiction=Jurisdiction.INTERNATIONAL,
         tier=Tier.CATALOGUE,intra_tier_order=11,fidelity=Fidelity.PUBLISHER_IMPORT,

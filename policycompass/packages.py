@@ -85,7 +85,7 @@ def install(path):
     metadata = verify(path)
     root = installation_root()
     root.mkdir(parents=True, exist_ok=True)
-    target = root / (metadata["version"] + ".waccpack")
+    target = root / (metadata["version"] + ".policycompasspack")
     if target.exists():
         if verify(target)["sha256"] == metadata["sha256"]:
             return metadata
@@ -105,4 +105,4 @@ def install(path):
 def installed(version):
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}", version):
         raise PolicyError("Invalid corpus version.", 5)
-    return verify(installation_root() / (version + ".waccpack"), True)[1]
+    return verify(installation_root() / (version + ".policycompasspack"), True)[1]

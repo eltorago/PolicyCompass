@@ -21,7 +21,7 @@ def requirement(reference, text, framework='ism'):
     uid = framework + ':' + reference
     return dict(id=uid, frameworkId=framework, officialReference=reference, heading='Synthetic example',
         parentId=None, authoritativeText=text, context='', sourceLocator={'reference':reference},
-        obligations=[dict(id='WACC-' + uid, interpretation=text, rule=None, mandatory=True,
+        obligations=[dict(id='POLICYCOMPASS-' + uid, interpretation=text, rule=None, mandatory=True,
                          ruleVersion='1.0', assessmentMethod='ManualReview', reviewStatus='ManualReviewOnly', provenance='Synthetic')])
 
 
@@ -165,7 +165,7 @@ class AlignmentTests(unittest.TestCase):
                              [r['alignment']['status'] for r in zipped['requirements']])
             self.assertTrue(any(d.get('archiveMember') for d in zipped['documents']))
             self.assertFalse((directory/'department').exists())
-            path = directory/'saved.wacc'; store.save(path, zipped)
+            path = directory/'saved.policycompass'; store.save(path, zipped)
             state = store.load(path)
             self.assertTrue(all(s['status']=='Unchanged' for s in store.verify_sources(state)))
             self.assertEqual(state['run'], zipped)
@@ -238,7 +238,7 @@ class AlignmentTests(unittest.TestCase):
     def test_compare_cli_and_saved_commands_return_alignment(self):
         with temporary() as directory, patch.object(corpus, 'load', return_value=deepcopy(BASELINE)):
             source=directory/'policy.txt';source.write_text('MFA protects remote access.',encoding='utf-8')
-            saved=directory/'comparison.wacc'
+            saved=directory/'comparison.policycompass'
             data,code=execute(parser().parse_args(['compare',str(source),'--scope','Synthetic','--assessment',str(saved)]))
             self.assertEqual(code,0)
             self.assertEqual(data['reportType'],'FrameworkAlignment')
@@ -253,7 +253,7 @@ class AlignmentTests(unittest.TestCase):
         from policycompass.desktop import Desktop
         with temporary() as directory, patch.object(corpus,'load',return_value=deepcopy(BASELINE)):
             source=directory/'policy.txt';source.write_text('MFA protects remote access.',encoding='utf-8')
-            run=service.analyse([source],scope='Synthetic'); saved=directory/'ui.wacc';store.save(saved,run)
+            run=service.analyse([source],scope='Synthetic'); saved=directory/'ui.policycompass';store.save(saved,run)
             root=tk.Tk();root.withdraw()
             try:
                 with patch.object(corpus,'installed',return_value={}):app=Desktop(root,saved)
