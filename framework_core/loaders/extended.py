@@ -55,7 +55,7 @@ def mcsb(corpus, framework, path):
                             'source_url':framework.source_url})
             corpus.add_control(control)
             count += 1
-            # The workbook names CIS v8 and NIST r4. WACC has CIS v8 and NIST r5;
+            # The workbook names CIS v8 and NIST r4. PolicyCompass has CIS v8 and NIST r5;
             # only the former is an edition-compatible published cross-reference.
             for identifier in dict.fromkeys(re.findall(r'(?m)^\s*(\d+\.\d+)\b',record.get('CIS Controls v8 ID(s)',''))):
                 target = corpus.control('cis-controls:'+identifier)
@@ -125,7 +125,7 @@ def essential_eight(corpus, framework, path):
             identifier=prefix+'-%02d'%counters[prefix],title=strategy,text=text,
             section_ref=level+' > '+strategy,origin=Origin.GENERATED,
             publisher_tags={'essential_eight_maturity':level},
-            attributes={'identifier_note':'WACC locator: maturity level, strategy and row in the publisher table.',
+            attributes={'identifier_note':'PolicyCompass locator: maturity level, strategy and row in the publisher table.',
                         'source_url':framework.source_url}))
     if len(counters) != 24:
         raise ValueError('Expected eight strategies in each of three Essential Eight maturity tables')
@@ -214,7 +214,7 @@ def strategies(corpus, framework, path):
         title = STRATEGY_TITLES[i]
         if not text.startswith(title): raise ValueError('Strategy table order/content changed: '+title)
         attributes = {'source_url': framework.source_url,
-            'identifier_note': 'S01-S37 are WACC row locators, not publisher control identifiers.',
+            'identifier_note': 'S01-S37 are PolicyCompass row locators, not publisher control identifiers.',
             'edition_note': 'February 2017 guidance. Historical software examples and timeframes are preserved; use current ISM and Essential Eight requirements for present-day assessments.',
             'relative_effectiveness': rating, 'user_resistance': resistance,
             'upfront_cost': upfront, 'ongoing_cost': ongoing}

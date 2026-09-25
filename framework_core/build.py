@@ -34,10 +34,9 @@ from .loaders import (
     wa_pris,
 )
 
-# WACC_SOURCES points to the local cache of publisher files used to build the live corpus.
-# The cache is populated with ``python -m wacc sources`` and is never distributed with
-# WACC. A custom folder may use the older development layout with documents and OSCAL
-# catalogues in subfolders. Any framework that cannot be loaded is named as unavailable.
+# POLICYCOMPASS_SOURCES selects a prepared local publisher-file cache for these loaders.
+# Publisher files are not distributed with the application. A custom folder may keep
+# documents and OSCAL catalogues in subfolders. Missing frameworks are marked unavailable.
 RAW = str(source_directory())
 CORPUS = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "corpus"
@@ -161,7 +160,7 @@ def build(verbose: bool = True, *, source_root=None, corpus_root=None, framework
     # Load referenced catalogues before the frameworks that cite them.
     load('ism', source('ISM_catalog.json'), ism_loader, 'ISM_catalog.json not present')
     if 'ism' in report.skipped:
-        report.skip('asd-principles', 'ISM_catalog.json not present; run python -m wacc sources')
+        report.skip('asd-principles', 'ISM_catalog.json not present; prepare the publisher source file')
     load('nist-800-53', source('NIST_SP-800-53_rev5_catalog.json'), nist_loader, '800-53 OSCAL catalog not present')
     load('cis-controls', source('CIS_Controls_Version_8.xlsx'), cis_loader, 'CIS Controls workbook not present')
     load('csf', source('nist-csf-2.0-cprt-all-olir.xlsx'), csf.load_into, 'CSF CPRT export not present')
@@ -181,7 +180,7 @@ def build(verbose: bool = True, *, source_root=None, corpus_root=None, framework
     for key, loader in (('wa-pris', wa_pris.load_into), ('asd-strategies', extended.strategies),
                         ('scf', extended.scf), ('mcsb', extended.mcsb),
                         ('essential-eight', extended.essential_eight), ('scuba', extended.scuba)):
-        load(key, source(corpus.frameworks[key].source_file), loader, 'Source not present; run python -m wacc sources')
+        load(key, source(corpus.frameworks[key].source_file), loader, 'Source not present; prepare the publisher source file')
     if selected is None:
         detail.load(corpus, str(corpus_directory/'detail'), verbose=verbose)
         attack_path = source('enterprise-attack-v19.2.xlsx')

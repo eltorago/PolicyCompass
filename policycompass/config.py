@@ -1,7 +1,7 @@
-"""Application settings, with explicit compatibility for WACC library locations."""
+"""PolicyCompass application settings."""
 import os
 
 
 def setting(name, default):
-    """Prefer PolicyCompass settings; accept the corresponding legacy WACC name."""
-    return os.environ.get("POLICYCOMPASS_" + name, os.environ.get("WACC_" + name, default))
+    """Read a namespaced setting or use the supplied default."""
+    return os.environ.get("POLICYCOMPASS_" + name, default)

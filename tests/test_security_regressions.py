@@ -65,7 +65,7 @@ class SourceOpeningTests(unittest.TestCase):
                         if forged_archive:
                             doc.update(archiveMember='policy.pdf', archiveHash=doc['sha256'])
                         run['canonicalHash'] = fingerprint(canonical_payload(run))
-                        saved = directory/(run['runId'] + '.wacc')
+                        saved = directory/(run['runId'] + '.policycompass')
                         store.save(saved, run)
                         # Keep the crafted run as historical, exercising the same launch boundary.
                         store.save(saved, valid)
@@ -135,7 +135,7 @@ class SourceOpeningTests(unittest.TestCase):
                     run = analyse([source])
                 self.assertEqual(run['documents'][0]['format'], suffix)
                 self.assertEqual(run['documents'][0]['status'], 'Failed')
-                saved = directory/('history-' + suffix[1:] + '.wacc')
+                saved = directory/('history-' + suffix[1:] + '.policycompass')
                 store.save(saved, run)
                 current = deepcopy(run)
                 current['runId'] = str(uuid.uuid4())
@@ -162,7 +162,7 @@ class EvidenceBudgetTests(unittest.TestCase):
             event = service.review_event(run, row['id'], 'Covered', 'Synthetic review', 'Tester',
                 [a['id'] for a in row['obligations']], [e['id'] for e in row['evidence']])
             self.assertEqual(len(event['confirmedObligations']), 2)
-            saved = directory/'comparison.wacc'
+            saved = directory/'comparison.policycompass'
             store.save(saved, run)
             # New generation limits must not reject existing history or change digests.
             with patch.object(service, 'MAX_EVIDENCE_RECORDS', 1), patch.object(service, 'MAX_EVIDENCE_BYTES', 1):
@@ -202,7 +202,7 @@ class EvidenceBudgetTests(unittest.TestCase):
         with temporary() as directory:
             source = directory/'policy.txt'
             source.write_text(SENTENCE, encoding='utf-8')
-            saved = directory/'existing.wacc'
+            saved = directory/'existing.policycompass'
             store.save(saved, analyse([source]))
             previous = saved.read_bytes()
             # Would create 132 MB of repeated excerpts without the default budget.

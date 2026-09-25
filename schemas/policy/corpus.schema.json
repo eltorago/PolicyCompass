@@ -45,7 +45,7 @@
   ],
   "additionalProperties": false,
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://wacc.local/schemas/policy/corpus/1.0",
+  "$id": "https://policycompass.local/schemas/policy/corpus/1.0",
   "$defs": {
     "locator": {
       "type": "object",

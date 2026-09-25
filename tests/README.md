@@ -9,7 +9,7 @@ python -m unittest discover -s tests -v
 The alignment and update suites use fictional inputs and local fixtures. They
 cover matching, ZIP limits and unsafe paths, batch imports, unreadable documents,
 report selection, source updates and recovery. The standalone suite checks that
-the renamed CLI and extraction worker run without WACC and that migrated asset
+the CLI and extraction worker run from a standalone checkout and that asset
 paths, cache settings and saved comparisons work.
 
 Some inherited integration tests need locally prepared publisher sources and

@@ -40,7 +40,7 @@ class FrameworkUpdateTests(unittest.TestCase):
             self.assertEqual(updates.discover('wa-csp'),'https://www.wa.gov.au/policy.pdf')
 
     def test_local_update_activates_without_wa_baseline_and_preserves_versions(self):
-        with temporary() as root, patch.dict(os.environ,{'WACC_FRAMEWORK_CACHE':str(root/'cache'),'WACC_LIBRARY':str(root/'empty-library')}):
+        with temporary() as root, patch.dict(os.environ,{'POLICYCOMPASS_FRAMEWORK_CACHE':str(root/'cache'),'POLICYCOMPASS_LIBRARY':str(root/'empty-library')}):
             path=root/'synthetic.json';path.write_bytes(fixture())
             result=updates.update(['ism'],path)
             self.assertEqual(result[0]['status'],'Updated',result)
@@ -55,7 +55,7 @@ class FrameworkUpdateTests(unittest.TestCase):
             self.assertEqual(len(list((root/'cache/versions/ism').iterdir())),2)
 
     def test_failed_update_and_failed_activation_keep_previous_version(self):
-        with temporary() as root, patch.dict(os.environ,{'WACC_FRAMEWORK_CACHE':str(root/'cache')}):
+        with temporary() as root, patch.dict(os.environ,{'POLICYCOMPASS_FRAMEWORK_CACHE':str(root/'cache')}):
             path=root/'synthetic.json';path.write_bytes(fixture());updates.update(['ism'],path)
             first=deepcopy(updates.current('ism'))
             path.write_text('not JSON')
@@ -71,7 +71,7 @@ class FrameworkUpdateTests(unittest.TestCase):
             self.assertEqual(updates.current('ism'),first)
 
     def test_modified_cached_source_is_rejected(self):
-        with temporary() as root, patch.dict(os.environ,{'WACC_FRAMEWORK_CACHE':str(root/'cache')}):
+        with temporary() as root, patch.dict(os.environ,{'POLICYCOMPASS_FRAMEWORK_CACHE':str(root/'cache')}):
             path=root/'synthetic.json';path.write_bytes(fixture());updates.update(['ism'],path)
             cached=next((root/'cache/versions').rglob('ISM_catalog.json'));cached.write_bytes(b'changed')
             with self.assertRaises(PolicyError):updates.current('ism')
@@ -85,12 +85,12 @@ class FrameworkUpdateTests(unittest.TestCase):
             self.assertNotIn('obligations',value['requirements'][0])
 
     def test_update_lock_blocks_concurrent_writer(self):
-        with temporary() as root, patch.dict(os.environ,{'WACC_FRAMEWORK_CACHE':str(root)}):
+        with temporary() as root, patch.dict(os.environ,{'POLICYCOMPASS_FRAMEWORK_CACHE':str(root)}):
             with updates.update_lock(root):
                 with self.assertRaises(PolicyError):updates.update(['ism'])
 
     def test_corrupt_cache_has_a_controlled_error_and_does_not_break_inventory(self):
-        with temporary() as root, patch.dict(os.environ,{'WACC_FRAMEWORK_CACHE':str(root)}):
+        with temporary() as root, patch.dict(os.environ,{'POLICYCOMPASS_FRAMEWORK_CACHE':str(root)}):
             (root/'current.json').write_text('not JSON')
             with self.assertRaises(PolicyError):updates.current('ism')
             inventory=corpus.installed()

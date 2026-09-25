@@ -7,13 +7,13 @@ command for its options. Downloads happen only when explicitly requested.
 python -m policycompass frameworks --format json
 python -m policycompass corpus update --framework wa-csp --framework ism --framework aescsf
 python -m policycompass corpus update --framework aescsf --import-file C:/Frameworks/aescsf-framework-core.xlsx
-python -m policycompass compare policies.zip policy.docx --framework wa-csp --also-assess ism --scope "Current departmental policies" --assessment comparison.wacc --format json
-python -m policycompass requirements comparison.wacc --status "Not mentioned" --format json
-python -m policycompass evidence comparison.wacc --format json
-python -m policycompass gaps comparison.wacc --format json
-python -m policycompass validate comparison.wacc --format json
-python -m policycompass report comparison.wacc --framework ism --format html --output report.html
-python -m policycompass open comparison.wacc
+python -m policycompass compare policies.zip policy.docx --framework wa-csp --also-assess ism --scope "Current departmental policies" --assessment comparison.policycompass --format json
+python -m policycompass requirements comparison.policycompass --status "Not mentioned" --format json
+python -m policycompass evidence comparison.policycompass --format json
+python -m policycompass gaps comparison.policycompass --format json
+python -m policycompass validate comparison.policycompass --format json
+python -m policycompass report comparison.policycompass --framework ism --format html --output report.html
+python -m policycompass open comparison.policycompass
 ```
 
 Reports support HTML, CSV, Markdown and JSON. Repeat `--framework` on `report` to

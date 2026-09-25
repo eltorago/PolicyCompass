@@ -3,8 +3,8 @@
 /data/raw/
 /data/corpus/
 /sources/files/
-*.wacc
-*.waccpack
+*.policycompass
+*.policycompasspack
 *.docx
 *.pdf
 *.xlsx

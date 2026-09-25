@@ -125,7 +125,7 @@ class PolicyTests(unittest.TestCase):
 
     def test_saved_review_does_not_overwrite_automated_finding(self):
         with temporary() as directory:
-            path=directory/'review.wacc';store.save(path,self.baseline)
+            path=directory/'review.policycompass';store.save(path,self.baseline)
             row=training(self.baseline)
             event=service.review_event(self.baseline,row['id'],'Covered','Checked the source passage','Test reviewer',[a['id'] for a in row['obligations']],[e['id'] for e in row['evidence']])
             store.append_review(path,event)
@@ -150,7 +150,7 @@ class PolicyTests(unittest.TestCase):
 
     def test_new_runs_retain_old_runs_and_require_rereview(self):
         with temporary() as directory:
-            path=directory/'runs.wacc';store.save(path,self.baseline)
+            path=directory/'runs.policycompass';store.save(path,self.baseline)
             row=training(self.baseline)
             event=service.review_event(self.baseline,row['id'],'NotCovered','Rejected evidence','Test')
             store.append_review(path,event)
@@ -163,7 +163,7 @@ class PolicyTests(unittest.TestCase):
 
     def test_historical_finalisation_survives_a_new_run(self):
         with temporary() as directory:
-            path=directory/'history.wacc';store.save(path,self.baseline);store.finalise(path)
+            path=directory/'history.policycompass';store.save(path,self.baseline);store.finalise(path)
             new=deepcopy(self.baseline);new['runId']=str(uuid.uuid4());store.save(path,new)
             self.assertFalse(store.load(path)['metadata']['selectedFinalised'])
             old=store.load(path,self.baseline['runId'])
@@ -171,7 +171,7 @@ class PolicyTests(unittest.TestCase):
             self.assertTrue(reports.model(old)['finalised'])
 
     def test_secondary_targets_are_independent_manual_findings(self):
-        with patch.dict(os.environ,{'WACC_LIBRARY':str(ROOT)}):
+        with patch.dict(os.environ,{'POLICYCOMPASS_LIBRARY':str(ROOT)}):
             run=service.analyse([ROOT/'examples/policy-review/positive.md'],scope='Secondary example',approval='approved',also=['csf'])
         self.assertTrue(any(r['frameworkId']=='csf' for r in run['requirements']))
         self.assertTrue(all(r['automatedFinding']=='NotAssessed' for r in run['requirements'] if r['frameworkId']=='csf'))
@@ -180,7 +180,7 @@ class PolicyTests(unittest.TestCase):
     def test_all_seven_framework_selections_and_practice_counts(self):
         from itertools import combinations
         library = corpus._library()
-        with temporary() as directory, patch.dict(os.environ,{'WACC_FRAMEWORK_CACHE':str(directory)}), patch('policycompass.corpus._library',return_value=library):
+        with temporary() as directory, patch.dict(os.environ,{'POLICYCOMPASS_FRAMEWORK_CACHE':str(directory)}), patch('policycompass.corpus._library',return_value=library):
             for size in (1,2,3):
                 for keys in combinations(('wa-csp','ism','aescsf'),size):
                     value = corpus.load(keys[0],also=keys[1:])
@@ -225,7 +225,7 @@ class PolicyTests(unittest.TestCase):
 
     def test_finalised_run_blocks_review_and_snapshot_is_consistent(self):
         with temporary() as directory:
-            path=directory/'original.wacc';copy=directory/'copy.wacc';store.save(path,self.baseline);store.finalise(path)
+            path=directory/'original.policycompass';copy=directory/'copy.policycompass';store.save(path,self.baseline);store.finalise(path)
             with self.assertRaises(PolicyError):
                 store.append_review(path,service.review_event(self.baseline,training(self.baseline)['id'],'NotCovered','No','Test'))
             store.snapshot(path,copy)
@@ -234,7 +234,7 @@ class PolicyTests(unittest.TestCase):
     def test_unknown_schema_and_hostile_sql_objects_are_rejected(self):
         for alteration in ['PRAGMA user_version=999','CREATE TRIGGER evil AFTER INSERT ON events BEGIN DELETE FROM runs; END','CREATE VIEW hostile AS SELECT 1']:
             with temporary() as directory:
-                path=directory/'bad.wacc';store.save(path,self.baseline)
+                path=directory/'bad.policycompass';store.save(path,self.baseline)
                 with sqlite3.connect(path) as db: db.execute(alteration)
                 db.close()
                 with self.assertRaises(PolicyError):store.load(path)
@@ -245,7 +245,7 @@ class PolicyTests(unittest.TestCase):
 
     def test_lock_failure_keeps_saved_work(self):
         with temporary() as directory:
-            path=directory/'locked.wacc';store.save(path,self.baseline)
+            path=directory/'locked.policycompass';store.save(path,self.baseline)
             with store.locked(path):
                 with self.assertRaises(PolicyError) as caught: store.save(path,self.baseline)
                 self.assertEqual(caught.exception.code,6)
@@ -349,7 +349,7 @@ class PolicyTests(unittest.TestCase):
             payload=canonical(data).encode()
             manifest=canonical(dict(schemaVersion='1.0',version=data['version'],engineMajor=0,files={'corpus.json':hashlib.sha256(payload).hexdigest()},reviewRecord='Synthetic test approval only')).encode()
             signature=canonical(dict(keyId='test-only',algorithm='Ed25519',signature=base64.b64encode(key.sign(manifest)).decode()))
-            archive=directory/'test.waccpack'
+            archive=directory/'test.policycompasspack'
             def write(body=payload,extra=False):
                 with zipfile.ZipFile(archive,'w') as z:
                     z.writestr('manifest.json',manifest);z.writestr('corpus.json',body);z.writestr('signature.json',signature)
@@ -374,7 +374,7 @@ class PolicyTests(unittest.TestCase):
             jsonschema.validate(value,schema)
         with temporary() as directory:
             from policycompass.cli import parser,execute
-            path=directory/'cli.wacc';store.save(path,self.baseline)
+            path=directory/'cli.policycompass';store.save(path,self.baseline)
             store.append_review(path,service.review_event(self.baseline,training(self.baseline)['id'],'NotCovered','Rejected','Test'))
             value,_=execute(parser().parse_args(['requirements',str(path),'--format','json']))
             jsonschema.validate(value,json.loads((ROOT/'schemas/policy/cli.schema.json').read_text()))
@@ -384,7 +384,7 @@ class PolicyTests(unittest.TestCase):
         with self.assertRaises(PolicyError):
             reports.export_report(state,self.baseline['documents'][0]['path'],'markdown',force=True)
         with self.assertRaises(PolicyError):
-            reports.export_report(state,'same.wacc','json',force=True,assessment_path='same.wacc')
+            reports.export_report(state,'same.policycompass','json',force=True,assessment_path='same.policycompass')
 
     def test_windows_worker_memory_limit_is_enforced(self):
         from policycompass.worker_limits import constrain
@@ -409,7 +409,7 @@ class PolicyTests(unittest.TestCase):
         import tkinter as tk
         from policycompass.desktop import Desktop
         with temporary() as directory:
-            path=directory/'desktop.wacc';store.save(path,self.baseline)
+            path=directory/'desktop.policycompass';store.save(path,self.baseline)
             root=tk.Tk();root.withdraw()
             try:
                 app=Desktop(root,path);root.update()

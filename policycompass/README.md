@@ -29,7 +29,7 @@ selected. Existing prepared local source collections also work.
 3. Select the frameworks to compare against.
 4. Choose **Add files or ZIP archives**. Select several files at once with Ctrl
    or Shift, add files in batches, or choose one or more ZIPs.
-5. Select **Compare and save**, then choose a name for the `.wacc` file.
+5. Select **Compare and save**, then choose a name for the `.policycompass` file.
 
 Supported documents are Word (`.docx`), text PDFs, plain text and Markdown.
 Folders inside ZIPs are supported. PolicyCompass reads archive members without unpacking
@@ -71,7 +71,7 @@ match count. Framework mappings do not transfer matches between requirements.
 
 ## Save and share
 
-Use **Open** to return to a `.wacc` file. **Compare new documents** creates a new
+Use **Open** to return to a `.policycompass` file. **Compare new documents** creates a new
 run while keeping earlier results in **History**. **Save a copy** makes a separate
 copy of the saved comparison.
 
@@ -81,7 +81,7 @@ open in a browser without a server. Reports group requirements into the same
 four results shown in the app.
 
 Comparisons retain extracted text and their framework snapshots. Original files
-stay where they are. Keep the `.wacc` file and reports in an appropriate local folder.
+stay where they are. Keep the `.policycompass` file and reports in an appropriate local folder.
 Older assessment files remain readable; if they retained only selected passages,
 start a new comparison with the original documents to search the complete text.
 
@@ -95,4 +95,4 @@ frameworks; saved comparisons retain their original wording and results.
 
 - [Commands, matching and file limits](../docs/COMMANDS.md)
 - [Build and deployment](../docs/BUILD.md)
-- [Transfer and compatibility notes](../docs/MIGRATION.md)
+- [Configuration and saved files](../docs/MIGRATION.md)

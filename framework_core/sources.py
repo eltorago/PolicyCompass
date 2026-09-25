@@ -1,4 +1,4 @@
-"""Acquire publisher source files without distributing them with WACC.
+"""Acquire publisher source files without distributing them with PolicyCompass.
 
 The acquisition catalogue points at publisher-controlled locations. Downloads must match
 the reviewed file hash or an explicitly configured OAG report-content fingerprint.
@@ -29,12 +29,12 @@ DEFAULT_DESTINATION = ROOT / "sources" / "files"
 MAX_BYTES = 64 * 1024 * 1024
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36 WACC-source-acquisition/1.0"
+    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36 POLICYCOMPASS-source-acquisition/1.0"
 )
 
 
 def source_directory(destination=None):
-    return Path(destination or os.environ.get('WACC_SOURCES') or DEFAULT_DESTINATION).expanduser().resolve()
+    return Path(destination or os.environ.get('POLICYCOMPASS_SOURCES') or DEFAULT_DESTINATION).expanduser().resolve()
 
 
 def local_path(directory, name):

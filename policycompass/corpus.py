@@ -8,7 +8,7 @@ from .config import setting
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = Path(__file__).resolve().parent / "assets"
-CORPUS_VERSION = "2026.09.23-pilot.2"
+CORPUS_VERSION = "2026.09.25-pilot.3"
 REVIEW_FRAMEWORKS = {"wa-csp": "WA CSP", "ism": "ASD ISM", "aescsf": "AESCSF"}
 MANUAL_FRAMEWORKS = ("ism", "aescsf", "essential-eight", "csf")
 
@@ -43,11 +43,11 @@ def _wa_requirements(edition=None):
     requirements = []
     for record in data["records"]:
         uid = "wa-csp:" + record["identifier"]
-        obligations = training_rules() if record["identifier"] == "3.2a" else [dict(id="WACC-" + uid, interpretation=record["text"], rule=None)]
+        obligations = training_rules() if record["identifier"] == "3.2a" else [dict(id="POLICYCOMPASS-" + uid, interpretation=record["text"], rule=None)]
         for atom in obligations:
             atom.update(mandatory=True, ruleVersion="1.0", assessmentMethod="DocumentReview",
                         reviewStatus="DraftNeedsHumanReview" if atom["rule"] else "ManualReviewOnly",
-                        provenance="WACC interpretation; not publisher wording")
+                        provenance="PolicyCompass interpretation; not publisher wording")
             if atom["rule"]:
                 validate_rule(atom["rule"])
         requirements.append(dict(id=uid, frameworkId="wa-csp", officialReference=record["identifier"],
@@ -77,11 +77,11 @@ def _imported_rows(packet):
         row = {key:source[key] for key in ('id','frameworkId','officialReference','heading','parentId','authoritativeText','context','sourceLocator')}
         trusted_training = (row['id'] == 'wa-csp:3.2a' and packet['framework']['sourceHash'] == pilot.get('reviewedSourceHash')
                             and fingerprint([row['authoritativeText'],row['context']]) == pilot.get('trainingRequirementHash'))
-        atoms = training_rules() if trusted_training else [dict(id='WACC-' + row['id'],interpretation=row['authoritativeText'],rule=None)]
+        atoms = training_rules() if trusted_training else [dict(id='POLICYCOMPASS-' + row['id'],interpretation=row['authoritativeText'],rule=None)]
         for atom in atoms:
             atom.update(mandatory=True,ruleVersion='1.0',assessmentMethod='DocumentReview',
                         reviewStatus='DraftNeedsHumanReview' if atom['rule'] else 'ManualReviewOnly',
-                        provenance='WACC interpretation; source imported locally')
+                        provenance='PolicyCompass interpretation; source imported locally')
             if atom['rule']: validate_rule(atom['rule'])
         row['obligations'] = atoms
         rows.append(row)
@@ -140,7 +140,7 @@ def load(framework="wa-csp", edition=None, corpus_version=None, also=()):
                                          heading=c.title or c.section_ref or "", parentId=c.parent_uid,
                                          authoritativeText=c.text, context=(parent.text if key == 'aescsf' and parent else c.attributes.get("lead_in", "")),
                                          sourceLocator=dict(reference=c.identifier),
-                                         obligations=[dict(id="WACC-" + c.uid, interpretation=c.text, rule=None,
+                                         obligations=[dict(id="POLICYCOMPASS-" + c.uid, interpretation=c.text, rule=None,
                                                            mandatory=True, ruleVersion="1.0", assessmentMethod="ManualReview",
                                                            reviewStatus="ManualReviewOnly", provenance="Source imported; decomposition pending")]))
         selected_ids = {r["id"] for r in requirements}
@@ -185,7 +185,7 @@ def installed():
         availability_errors['wa-csp'] = baseline_error
     from .packages import installation_root, verify
     packages = []
-    for path in sorted(installation_root().glob('*.waccpack')):
+    for path in sorted(installation_root().glob('*.policycompasspack')):
         try:
             packages.append(verify(path))
         except PolicyError:
