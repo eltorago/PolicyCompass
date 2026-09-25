@@ -1,0 +1,21 @@
+# Local inputs, extracted publisher text and saved comparisons never belong in Git.
+/data/local/
+/data/raw/
+/data/corpus/
+/sources/files/
+*.wacc
+*.waccpack
+*.docx
+*.pdf
+*.xlsx
+*.zip
+.venv/
+__pycache__/
+*.py[cod]
+*.log
+*.tmp
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.env
