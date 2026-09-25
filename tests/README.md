@@ -20,5 +20,6 @@ ignored local inputs, never test fixtures committed to Git. The WA pilot rules
 are pinned to their original reviewed extract; newer editions require separate
 rule review. Framework imports do not require those legacy rules to run alignment.
 
-Desktop tests require Tkinter and a graphical session. CI runs the portable
-synthetic cases on Windows and Linux; Linux uses Xvfb for the desktop widget test.
+Desktop tests require Tkinter and a graphical session. CI runs the synthetic
+cases on Windows. The inherited extraction worker uses Windows Job Objects to
+bound memory and deliberately refuses to parse documents on other platforms.
