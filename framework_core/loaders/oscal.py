@@ -268,7 +268,7 @@ def load_into(
             applicability: object = values if values else None
         else:
             applicability = None
-        for extra in ("implementation-level", "status", "revision", "updated"):
+        for extra in ("implementation-level", "status", "revision", "updated", "essential-eight-applicability"):
             vals = prop_values(control, extra)
             if vals:
                 publisher_tags[extra] = vals if len(vals) > 1 else vals[0]

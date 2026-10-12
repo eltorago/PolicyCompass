@@ -4,12 +4,14 @@ import os
 from pathlib import Path
 import queue
 import threading
+import webbrowser
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from tkinter.scrolledtext import ScrolledText
 
 from . import ENGINE_VERSION, alignment, corpus, service, store, reports
 from .contracts import PolicyError
+from .frameworks import AUTOMATIC, PAGES
 
 
 class Desktop(ttk.Frame):
@@ -99,12 +101,16 @@ class Desktop(ttk.Frame):
         self.settings.pack(fill="both", expand=True)
         update_page = self.pages['Framework updates']
         ttk.Label(update_page, text='Download current framework files from their publishers. This action needs internet access; analysis and saved assessments work offline.', wraplength=1000).pack(anchor='w', pady=8)
-        self.update_choices = {key:tk.BooleanVar(value=True) for key in corpus.REVIEW_FRAMEWORKS}
+        self.update_choices = {key:tk.BooleanVar(value=True) for key in AUTOMATIC}
         for key, variable in self.update_choices.items():
             ttk.Checkbutton(update_page, text=corpus.REVIEW_FRAMEWORKS[key], variable=variable).pack(anchor='w')
         ttk.Button(update_page, text='Download updates', command=self.update_frameworks).pack(anchor='w', pady=8)
         ttk.Label(update_page, text='If a publisher blocks automatic access, download its file yourself and select one framework above before importing it.', wraplength=1000).pack(anchor='w')
         ttk.Button(update_page, text='Import framework file', command=lambda:self.update_frameworks(True)).pack(anchor='w', pady=8)
+        ttk.Separator(update_page).pack(fill='x', pady=8)
+        ttk.Label(update_page, text='AESCSF: download the Core workbook from AEMO, then select it here. No renaming or moving files is needed.', wraplength=1000).pack(anchor='w')
+        ttk.Button(update_page, text='Open AEMO download page', command=lambda:webbrowser.open(PAGES['aescsf'])).pack(anchor='w', pady=4)
+        ttk.Button(update_page, text='Import AESCSF workbook', command=lambda:self.update_frameworks(True, 'aescsf')).pack(anchor='w', pady=4)
         self.update_text = ScrolledText(update_page, wrap='word')
         self.update_text.pack(fill='both', expand=True)
         try:
@@ -175,7 +181,7 @@ class Desktop(ttk.Frame):
         available = corpus.installed()
         choices = {f['id']: f for f in available['availableFrameworks'] if f['id'] in corpus.REVIEW_FRAMEWORKS}
         if not choices:
-            messagebox.showerror('Frameworks unavailable', 'Prepare a local WA CSP, ASD ISM or AESCSF source collection before creating an assessment.', parent=self)
+            messagebox.showerror('Frameworks unavailable', 'Open Framework updates to download a framework or import an AESCSF Core workbook.', parent=self)
             return
         dialog = tk.Toplevel(self)
         dialog.title("Select documents and frameworks")
@@ -193,10 +199,24 @@ class Desktop(ttk.Frame):
         ttk.Label(form, text='Compare against — select one or more frameworks', wraplength=700).pack(anchor='w', pady=10)
         previous = {f['id'] for f in self.state['run']['versions']['frameworks']} if self.state and destination else {next(iter(choices))}
         selected_frameworks = {key: tk.BooleanVar(value=key in previous and key in choices) for key in corpus.REVIEW_FRAMEWORKS}
-        for key, variable in selected_frameworks.items():
+        framework_box = ttk.Frame(form)
+        framework_box.pack(fill='x')
+        for index, (key, variable) in enumerate(selected_frameworks.items()):
             label = corpus.REVIEW_FRAMEWORKS[key]
-            label += ' — ' + choices[key]['edition'] if key in choices else ' — local source unavailable'
-            ttk.Checkbutton(form, text=label, variable=variable, state='normal' if key in choices else 'disabled').pack(anchor='w')
+            label += '' if key in choices else ' — not installed'
+            ttk.Checkbutton(framework_box, text=label, variable=variable, state='normal' if key in choices else 'disabled').grid(row=index//2, column=index%2, sticky='w', padx=(0, 20), pady=3)
+        previous_profile = next((f.get('profile') for f in self.state['run']['versions']['frameworks'] if f['id'] == 'ism'), None) if self.state and destination else None
+        maturity = tk.StringVar(value=previous_profile or 'All ISM controls')
+        ttk.Label(form, text='ISM scope — Essential Eight uses the ISM control identifiers').pack(anchor='w', pady=(8, 0))
+        maturity_box = ttk.Combobox(form, textvariable=maturity, values=('All ISM controls', 'ML1', 'ML2', 'ML3'), state='readonly')
+        maturity_box.pack(anchor='w')
+        def select_ism(*_):
+            enabled = selected_frameworks['ism'].get()
+            maturity_box.configure(state='readonly' if enabled else 'disabled')
+            if not enabled:
+                maturity.set('All ISM controls')
+        selected_frameworks['ism'].trace_add('write', select_ism)
+        select_ism()
         selected = tk.Listbox(form, height=5, selectmode="extended")
         selected.pack(fill="both", expand=True, pady=8)
         def add():
@@ -224,7 +244,8 @@ class Desktop(ttk.Frame):
                 return
             options = dict(paths=list(selected.get(0, "end")), name=values["Name"].get(), scope=values["Scope"].get(),
                            organisation=values["Organisation"].get(), retention="extracted",
-                           framework=frameworks[0], also=frameworks[1:])
+                           framework=frameworks[0], also=frameworks[1:],
+                           ism_maturity=None if maturity.get() == 'All ISM controls' else maturity.get())
             dialog.destroy()
             self.start_analysis(path, options)
         ttk.Button(form, text="Compare and save", command=run).pack(anchor="e", pady=10)
@@ -270,16 +291,17 @@ class Desktop(ttk.Frame):
         if self.winfo_exists():
             self.after(100, self.poll)
 
-    def update_frameworks(self, manual=False):
+    def update_frameworks(self, manual=False, framework=None):
         if self.busy:
             return
-        selected = [key for key, value in self.update_choices.items() if value.get()]
+        selected = [framework] if framework else [key for key, value in self.update_choices.items() if value.get()]
         if not selected or (manual and len(selected) != 1):
             messagebox.showerror('Choose frameworks', 'Select one framework for manual import, or one or more for downloads.', parent=self)
             return
         path = None
         if manual:
-            path = filedialog.askopenfilename(parent=self, filetypes=[('Publisher frameworks','*.pdf *.xlsx *.json')])
+            types = [('AESCSF Core workbook', '*.xlsx')] if framework == 'aescsf' else [('Publisher frameworks','*.pdf *.xlsx *.json *.html')]
+            path = filedialog.askopenfilename(parent=self, title='Select AESCSF Core workbook' if framework == 'aescsf' else 'Select framework file', filetypes=types)
             if not path:
                 return
         self.busy = True

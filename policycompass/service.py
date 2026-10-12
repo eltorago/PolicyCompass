@@ -19,12 +19,12 @@ def now():
 
 
 def analyse(paths, name="Framework alignment", scope="Selected policy documents", organisation="", framework="wa-csp",
-            edition=None, corpus_version=None, also=(), recurse=False, approval="unknown", retention="extracted", cancel=None):
+            edition=None, corpus_version=None, also=(), recurse=False, approval="unknown", retention="extracted", cancel=None, ism_maturity=None):
     if not scope.strip() or approval not in ("approved", "draft", "unknown", "superseded") or retention not in ("evidence", "extracted"):
         raise PolicyError("Choose a scope, document approval status and supported retention mode.", 2)
     selected = documents.select(paths, recurse)
     inputs, skipped = documents.expand_inputs(selected)
-    baseline = corpus.load(framework, edition, corpus_version, also)
+    baseline = corpus.load(framework, edition, corpus_version, also, **({"ism_maturity": ism_maturity} if ism_maturity else {}))
     imported, duplicates = [], []
     seen = set()
     text_length = 0

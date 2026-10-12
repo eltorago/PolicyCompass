@@ -5,7 +5,7 @@ command for its options. Downloads happen only when explicitly requested.
 
 ```powershell
 python -m policycompass frameworks --format json
-python -m policycompass corpus update --framework wa-csp --framework ism --framework aescsf
+python -m policycompass corpus update --framework wa-csp --framework ism --framework csf --framework pspf --framework nist-800-53 --framework asd-strategies
 python -m policycompass corpus update --framework aescsf --import-file C:/Frameworks/aescsf-framework-core.xlsx
 python -m policycompass compare policies.zip policy.docx --framework wa-csp --also-assess ism --scope "Current departmental policies" --assessment comparison.policycompass --format json
 python -m policycompass requirements comparison.policycompass --status "Not mentioned" --format json
@@ -15,6 +15,15 @@ python -m policycompass validate comparison.policycompass --format json
 python -m policycompass report comparison.policycompass --framework ism --format html --output report.html
 python -m policycompass open comparison.policycompass
 ```
+
+Use `--ism-maturity ML1`, `ML2` or `ML3` on `compare` to select ISM controls
+with ASD's Essential Eight applicability tag. Include `--framework ism` or
+`--also-assess ism`. Omit the option to include the full ISM. An older cached
+ISM without these tags must be downloaded again before the filter can be used.
+The selected profile is recorded with the saved framework edition.
+
+`corpus update` with no framework argument downloads all automatically supported
+frameworks. AESCSF uses an explicit Core workbook import, as shown above.
 
 Reports support HTML, CSV, Markdown and JSON. Repeat `--framework` on `report` to
 select several frameworks; omit it to include every assessed framework. Use

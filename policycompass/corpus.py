@@ -1,16 +1,18 @@
-"""Adapter for the existing WA policy extract and versioned pilot rule data."""
+"""Versioned framework snapshots and locally prepared source collections."""
 import json
 import os
 from pathlib import Path
 from .contracts import PolicyError, fingerprint
 from .rules import validate_rule
 from .config import setting
+from .frameworks import NAMES
+from .framework_import import controls_for_comparison, control_rows
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = Path(__file__).resolve().parent / "assets"
-CORPUS_VERSION = "2026.09.25-pilot.3"
-REVIEW_FRAMEWORKS = {"wa-csp": "WA CSP", "ism": "ASD ISM", "aescsf": "AESCSF"}
-MANUAL_FRAMEWORKS = ("ism", "aescsf", "essential-eight", "csf")
+CORPUS_VERSION = "2026.10.12-pilot.4"
+REVIEW_FRAMEWORKS = NAMES
+MANUAL_FRAMEWORKS = tuple(key for key in NAMES if key != 'wa-csp')
 
 
 def training_rules():
@@ -65,9 +67,7 @@ def _library(keys=MANUAL_FRAMEWORKS):
 
 
 def _controls(existing, key):
-    # AESCSF domains and objectives are headings; count its practices once.
-    return [c for c in existing.controls_for(key) if c.text and not c.attributes.get('structural')
-            and (key != 'aescsf' or c.depth == 2)]
+    return controls_for_comparison(existing, key)
 
 
 def _imported_rows(packet):
@@ -75,6 +75,8 @@ def _imported_rows(packet):
     rows = []
     for source in packet['requirements']:
         row = {key:source[key] for key in ('id','frameworkId','officialReference','heading','parentId','authoritativeText','context','sourceLocator')}
+        if 'ismMaturityLevels' in source:
+            row['ismMaturityLevels'] = source['ismMaturityLevels']
         trusted_training = (row['id'] == 'wa-csp:3.2a' and packet['framework']['sourceHash'] == pilot.get('reviewedSourceHash')
                             and fingerprint([row['authoritativeText'],row['context']]) == pilot.get('trainingRequirementHash'))
         atoms = training_rules() if trusted_training else [dict(id='POLICYCOMPASS-' + row['id'],interpretation=row['authoritativeText'],rule=None)]
@@ -88,7 +90,7 @@ def _imported_rows(packet):
     return rows
 
 
-def load(framework="wa-csp", edition=None, corpus_version=None, also=()):
+def load(framework="wa-csp", edition=None, corpus_version=None, also=(), ism_maturity=None):
     selected = list(dict.fromkeys([framework, *also]))
     local_version = bool(corpus_version and corpus_version.startswith(CORPUS_VERSION + '-local-'))
     if corpus_version and corpus_version != CORPUS_VERSION and not local_version:
@@ -102,8 +104,8 @@ def load(framework="wa-csp", edition=None, corpus_version=None, also=()):
         packaged['frameworks'] = [f for f in packaged['frameworks'] if f['id'] in selected]
         ids = {r['id'] for r in packaged['requirements']}
         packaged['mappings'] = [m for m in packaged['mappings'] if m['source'] in ids and m['target'] in ids]
-        return packaged
-    if not set(selected) <= {'wa-csp', *MANUAL_FRAMEWORKS}:
+        return select_ism_maturity(packaged, ism_maturity)
+    if not set(selected) <= set(NAMES):
         raise PolicyError('Unsupported assessment framework. Use python -m policycompass frameworks to see the available choices.', 5)
     requirements, frameworks, mappings = [], [], []
     from . import updates
@@ -134,15 +136,11 @@ def load(framework="wa-csp", edition=None, corpus_version=None, also=()):
                 raise PolicyError('Requested framework edition is not installed. Use python -m policycompass frameworks.', 5)
             frameworks.append(dict(id=key, title=fw.name, edition=fw.revision, sourceFile=fw.source_file, sourceUri=fw.source_url,
                                    extractHash=fingerprint([(c.uid, c.text, c.section_ref, c.attributes, c.publisher_tags) for c in controls]), licence=fw.licence.value))
-            for c in controls:
-                parent = existing.controls.get(c.parent_uid)
-                requirements.append(dict(id=c.uid, frameworkId=key, officialReference=c.identifier,
-                                         heading=c.title or c.section_ref or "", parentId=c.parent_uid,
-                                         authoritativeText=c.text, context=(parent.text if key == 'aescsf' and parent else c.attributes.get("lead_in", "")),
-                                         sourceLocator=dict(reference=c.identifier),
-                                         obligations=[dict(id="POLICYCOMPASS-" + c.uid, interpretation=c.text, rule=None,
-                                                           mandatory=True, ruleVersion="1.0", assessmentMethod="ManualReview",
-                                                           reviewStatus="ManualReviewOnly", provenance="Source imported; decomposition pending")]))
+            for row in control_rows(existing, key):
+                row['obligations'] = [dict(id="POLICYCOMPASS-" + row['id'], interpretation=row['authoritativeText'], rule=None,
+                    mandatory=True, ruleVersion="1.0", assessmentMethod="ManualReview", reviewStatus="ManualReviewOnly",
+                    provenance="Source imported; decomposition pending")]
+                requirements.append(row)
         selected_ids = {r["id"] for r in requirements}
         for link in existing.links:
             if link.source_uid in selected_ids and link.target_uid in selected_ids:
@@ -151,38 +149,42 @@ def load(framework="wa-csp", edition=None, corpus_version=None, also=()):
     selected_ids = {r['id'] for r in requirements}
     mappings = [m for m in mappings if m['source'] in selected_ids and m['target'] in selected_ids]
     frameworks.sort(key=lambda f:selected.index(f['id']))
-    return dict(version=version, frameworks=frameworks, requirements=requirements, mappings=mappings,
-                rulesHash=fingerprint([r["obligations"] for r in requirements]), status="Pilot — rule approval pending")
+    return select_ism_maturity(dict(version=version, frameworks=frameworks, requirements=requirements, mappings=mappings,
+                rulesHash=fingerprint([r["obligations"] for r in requirements]), status="Pilot — rule approval pending"), ism_maturity)
+
+
+def select_ism_maturity(value, level):
+    if level is None:
+        return value
+    if level not in ('ML1', 'ML2', 'ML3') or 'ism' not in {f['id'] for f in value['frameworks']}:
+        raise PolicyError('Choose ISM and an Essential Eight maturity level: ML1, ML2 or ML3.', 2)
+    selected = [r for r in value['requirements'] if r['frameworkId'] != 'ism' or level in r.get('ismMaturityLevels', [])]
+    if not any(r['frameworkId'] == 'ism' for r in selected):
+        raise PolicyError('This ISM copy has no Essential Eight maturity tags. Download the current ISM before filtering.', 5)
+    value['requirements'] = selected
+    ids = {r['id'] for r in selected}
+    value['mappings'] = [m for m in value['mappings'] if m['source'] in ids and m['target'] in ids]
+    value['rulesHash'] = fingerprint([r['obligations'] for r in selected])
+    for framework in value['frameworks']:
+        if framework['id'] == 'ism':
+            framework['profile'] = level
+            framework['title'] += ' — Essential Eight ' + level
+    return value
 
 
 def installed():
-    try:
-        corpus = load()
-        baseline_error = None
-    except PolicyError as error:
-        corpus = dict(status='Baseline unavailable', frameworks=[], requirements=[])
-        baseline_error = str(error)
-    supported = sum(all(a['rule'] for a in r['obligations']) for r in corpus['requirements'])
-    available = [dict(**f, requirements=len(corpus['requirements']), automatedRequirements=supported) for f in corpus['frameworks']]
-    availability_errors = {}
-    try:
-        existing = _library()
-        for key in MANUAL_FRAMEWORKS:
-            from . import updates
-            refreshed = updates.current(key) if key in REVIEW_FRAMEWORKS else None
-            if refreshed:
-                available.append(dict(**refreshed['framework'], requirements=len(refreshed['requirements']), automatedRequirements=0))
-                continue
-            fw = existing.frameworks[key]
-            rows = _controls(existing, key)
-            if rows:
-                available.append(dict(id=key, title=fw.name, edition=fw.revision, requirements=len(rows), automatedRequirements=0))
-            else:
-                availability_errors[key] = 'Local source not available.'
-    except Exception:
-        availability_errors['library'] = 'Local framework library could not be loaded.'
-    if baseline_error:
-        availability_errors['wa-csp'] = baseline_error
+    available, availability_errors = [], {}
+    baseline = None
+    for key in NAMES:
+        try:
+            loaded = load(key)
+            fw = loaded['frameworks'][0]
+            available.append(dict(**fw, requirements=len(loaded['requirements']),
+                automatedRequirements=sum(all(a['rule'] for a in r['obligations']) for r in loaded['requirements'])))
+            if key == 'wa-csp':
+                baseline = loaded
+        except Exception as error:
+            availability_errors[key] = str(error) if isinstance(error, PolicyError) else 'Local framework could not be loaded. Download it again.'
     from .packages import installation_root, verify
     packages = []
     for path in sorted(installation_root().glob('*.policycompasspack')):
@@ -190,7 +192,10 @@ def installed():
             packages.append(verify(path))
         except PolicyError:
             packages.append(dict(version=path.stem, status='Invalid or no longer trusted'))
-    return dict(corpusVersion=corpus.get('version', CORPUS_VERSION), installedPackages=packages, baselineError=baseline_error, status=corpus["status"], frameworks=corpus["frameworks"],
-                requirements=len(corpus["requirements"]), ruleSupportedRequirements=supported,
+    baseline = baseline or dict(status='Baseline unavailable', frameworks=[], requirements=[])
+    return dict(corpusVersion=baseline.get('version', CORPUS_VERSION), installedPackages=packages,
+                baselineError=availability_errors.get('wa-csp'), status=baseline['status'], frameworks=baseline['frameworks'],
+                requirements=len(baseline['requirements']),
+                ruleSupportedRequirements=sum(all(a['rule'] for a in r['obligations']) for r in baseline['requirements']),
                 availableFrameworks=available, availabilityErrors=availability_errors,
                 secondaryFrameworks=list(MANUAL_FRAMEWORKS))

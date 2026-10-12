@@ -1,7 +1,8 @@
 # Compare policies with frameworks
 
 PolicyCompass shows where your policy documents mention subjects in the **WA CSP**,
-**ASD ISM** and **AESCSF**, and which requirements have no matching passage.
+**ASD ISM**, **ASD mitigation strategies**, **NIST CSF**, **PSPF**, **NIST SP 800-53**
+and **AESCSF**, and which requirements have no matching passage.
 Choose one framework or any combination. Results stay separate for each framework.
 
 ## Open PolicyCompass
@@ -20,13 +21,18 @@ Built application folders can open without installing Python; see
 Before the first comparison, open **Framework updates**, select the frameworks
 you need and choose **Download updates**. If a publisher blocks a download,
 download its file yourself and use **Import framework file** with that framework
-selected. Existing prepared local source collections also work.
+selected. For AESCSF, use **Open AEMO download page** to obtain the Core workbook,
+then **Import AESCSF workbook**. Keep its original filename; the app copies and
+checks it. A failed import keeps your previous copy. Existing prepared local
+source collections also work.
 
 ## Add documents
 
 1. Select **New comparison**.
 2. Give it a name, optionally enter your organisation, and describe the scope.
-3. Select the frameworks to compare against.
+3. Select the frameworks to compare against. For ISM, select all controls or the
+   Essential Eight ML1, ML2 or ML3 filter. This changes the selected ISM controls;
+   it does not create a second framework or calculate a maturity rating.
 4. Choose **Add files or ZIP archives**. Select several files at once with Ctrl
    or Shift, add files in batches, or choose one or more ZIPs.
 5. Select **Compare and save**, then choose a name for the `.policycompass` file.
@@ -90,6 +96,9 @@ start a new comparison with the original documents to search the complete text.
 Use **Framework updates → Download updates** to check for newer publisher copies.
 Failed updates leave the previous copy in place. New comparisons use the updated
 frameworks; saved comparisons retain their original wording and results.
+WA CSP updates select the newest published policy, including the 2026 edition.
+The 2024 training rules are not applied to the revised policy.
+See [framework sources and editions](../docs/FRAMEWORKS.md).
 
 ## More detail
 

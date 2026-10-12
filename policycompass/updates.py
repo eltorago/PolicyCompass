@@ -18,17 +18,10 @@ from .contracts import PolicyError, fingerprint
 from .config import setting
 from .documents import MAX_BYTES, extract_worker, local_file
 from .reports import write_output
+from .frameworks import NAMES, AUTOMATIC, PAGES, FILENAMES, HOSTS, DIRECT_DOWNLOADS, REPOSITORY_PATHS
 
-PAGES = {
-    'wa-csp': 'https://www.wa.gov.au/government/publications/2024-wa-government-cyber-security-policy',
-    'aescsf': 'https://www.aemo.com.au/initiatives/major-programs/cyber-security/aescsf-framework-and-resources',
-    'ism': 'https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/ism-oscal-releases',
-}
-ISM_CATALOG = 'https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/main/ISM_catalog.json'
-FILENAMES = {'wa-csp':'wa-cyber-security-policy.pdf','aescsf':'aescsf-framework-core.xlsx','ism':'ISM_catalog.json'}
-HOSTS = {'wa-csp':{'www.wa.gov.au','wa.gov.au'}, 'aescsf':{'www.aemo.com.au','aemo.com.au'},
-         'ism':{'raw.githubusercontent.com'}}
-IMPORT_VERSION = 'publisher-2'
+ISM_CATALOG = DIRECT_DOWNLOADS['ism']
+IMPORT_VERSION = 'publisher-3'
 
 
 def cache_root():
@@ -41,8 +34,8 @@ def approved_url(url, framework):
     if (framework not in HOSTS or parsed.scheme != 'https' or parsed.hostname not in HOSTS[framework]
             or parsed.username or parsed.password or parsed.port not in (None,443)):
         raise PolicyError('Framework download must remain on its official publisher host.', 5)
-    if framework == 'ism' and not parsed.path.startswith('/AustralianCyberSecurityCentre/ism-oscal/'):
-        raise PolicyError('Unexpected ISM repository path.', 5)
+    if framework in REPOSITORY_PATHS and not parsed.path.startswith(REPOSITORY_PATHS[framework]):
+        raise PolicyError('Unexpected publisher repository path.', 5)
     return url
 
 
@@ -91,8 +84,8 @@ class Links(HTMLParser):
 
 
 def discover(framework):
-    if framework == 'ism':
-        return ISM_CATALOG
+    if framework in DIRECT_DOWNLOADS:
+        return DIRECT_DOWNLOADS[framework]
     body, page = download(PAGES[framework], framework)
     parser = Links(); parser.feed(body.decode('utf-8'))
     candidates = []
@@ -101,7 +94,12 @@ def discover(framework):
         text = label.casefold()
         path = urlsplit(url).path.casefold()
         if framework == 'wa-csp':
-            match = path.endswith('.pdf') and 'cyber security policy' in text and '2024' in text and 'overview' not in text and 'ecosystem' not in text
+            match = (path.endswith('.pdf') and 'cyber security policy' in text
+                     and not any(word in text for word in ('overview', 'ecosystem', 'guidance', 'draft')))
+            years = re.findall(r'\b20\d{2}\b', text)
+            rank = max(map(int, years)) if years else 0
+        elif framework == 'pspf':
+            match = path.endswith('.pdf') and 'pspf' in path and 'requirements' in path
             rank = 1
         else:
             match = path.endswith('.xlsx') and 'aescsf' in text and 'core' in text and 'toolkit' not in text
@@ -193,9 +191,9 @@ def update_lock(root):
 
 
 def update(frameworks=None, local_import=None, progress=None):
-    selected = list(dict.fromkeys(frameworks if frameworks is not None else PAGES))
-    if not selected or not set(selected) <= set(PAGES) or (local_import and len(selected) != 1):
-        raise PolicyError('Select WA CSP, ASD ISM or AESCSF; manual import accepts one framework at a time.', 2)
+    selected = list(dict.fromkeys(frameworks if frameworks is not None else AUTOMATIC))
+    if not selected or not set(selected) <= set(NAMES) or (local_import and len(selected) != 1):
+        raise PolicyError('Select a supported framework; local import accepts one framework at a time.', 2)
     root = cache_root()
     results = []
     with update_lock(root):
