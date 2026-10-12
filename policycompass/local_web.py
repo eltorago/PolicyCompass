@@ -452,6 +452,15 @@ class Handler(BaseHTTPRequestHandler):
 
     def handle_action(self, post):
         try:
+            # Buffer only small, fixed-length bodies before an early rejection.
+            # Closing a Windows socket with unread request bytes can reset it
+            # before the browser receives the error. Large uploads still require
+            # authorisation before their content is read; all sockets are timed.
+            small_body = None
+            declared = self.headers.get_all('Content-Length', [])
+            if (post and not self.headers.get('Transfer-Encoding') and len(declared) == 1
+                    and declared[0].isdigit() and len(declared[0]) <= 5 and int(declared[0]) <= 65536):
+                small_body = self.rfile.read(int(declared[0]))
             parsed = urlsplit(self.path)
             path = parsed.path
             if parsed.scheme or parsed.netloc or len(self.path) > 8192:
@@ -481,15 +490,13 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 length = int(lengths[0])
                 if path == '/api/upload':
-                    # Consume small bodies before replying to invalid filenames,
-                    # avoiding a TCP reset from closing a socket with unread data.
-                    stream = io.BytesIO(self.rfile.read(length)) if length <= 65536 else self.rfile
+                    stream = io.BytesIO(small_body) if small_body is not None else self.rfile
                     result = app.receive(stream, value('name'), value('kind'), length)
                 else:
                     if length > 65536 or self.headers.get_content_type() != 'application/json':
                         self.respond(413, dict(error='Use a small JSON request.'))
                         return
-                    raw = self.rfile.read(length)
+                    raw = small_body if small_body is not None else self.rfile.read(length)
                     if len(raw) != length:
                         raise PolicyError('The request was interrupted.', 2)
                     data = json.loads(raw)

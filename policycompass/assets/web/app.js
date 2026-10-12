@@ -90,6 +90,10 @@ async function api(path, data, options = {}) {
 }
 async function json(path, data) { return (await api(path, data)).json(); }
 async function upload(file, kind) {
+  const limit = kind === 'assessment' ? 128 : 16;
+  if (!file.size || file.size > limit * 1024 * 1024) throw new Error(`Choose a non-empty file no larger than ${limit} MiB.`);
+  const allowed = {policy:/\.(pdf|docx|txt|md|zip)$/i, framework:/\.(pdf|xlsx|json|html)$/i, assessment:/\.policycompass$/i};
+  if (!allowed[kind]?.test(file.name)) throw new Error('This file type is not supported for that import.');
   return (await api('/api/upload?' + new URLSearchParams({name:file.name, kind}), undefined,
     {method:'POST', headers:{'Content-Type':'application/octet-stream'}, body:file})).json();
 }

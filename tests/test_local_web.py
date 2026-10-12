@@ -104,6 +104,14 @@ class LocalWebTests(unittest.TestCase):
         for path in ('/../instance.json', '/assets/../../README.md', '/instance.json', '/uploads', '/api/unknown'):
             self.assertEqual(self.request(path)[0], 404)
 
+    def test_rejected_post_returns_readable_error_without_resetting_connection(self):
+        for _ in range(25):
+            status, _, response = self.request('/api/quit', {'ignored':'small request body'},
+                headers={'Origin':'https://another.example'})
+            self.assertEqual(status, 403)
+            self.assertIn('other websites', response['error'])
+        self.assertFalse(self.app.stopping)
+
     def test_upload_paths_sizes_and_windows_devices_are_rejected(self):
         for name in ('../policy.txt', 'C:\\policy.txt', 'a/b.txt', 'policy.txt:stream', 'NUL.txt', 'CON', 'a.txt ', 'a.txt.', 'app.exe'):
             with self.subTest(name=name):
