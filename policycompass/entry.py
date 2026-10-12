@@ -1,4 +1,4 @@
-"""Offline executable entry point; deliberately does not expose acquisition or serve."""
+"""Packaged core: browser workspace, command line and bounded parser workers."""
 import sys
 from multiprocessing import freeze_support
 
@@ -10,5 +10,5 @@ if __name__ == '__main__':
     else:
         from policycompass.cli import main
         if len(sys.argv) == 1:
-            sys.argv.append('open')
+            sys.argv.append('browser')
         sys.exit(main())

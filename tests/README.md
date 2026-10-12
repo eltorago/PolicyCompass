@@ -15,6 +15,43 @@ report exports, framework downloads and recovery after failed updates. They also
 check that the command line and document-reading worker run from a standalone
 checkout. Most cases use small fictional inputs and need no network access.
 
+The local browser tests exercise the actual HTTP server, including its session,
+host and origin checks, bounded uploads, cancellation, instance reuse, framework
+import, saved history and report downloads:
+
+```powershell
+python -m unittest discover -s tests -p test_local_web.py -v
+```
+
+## Browser and packaged checks
+
+Use a fresh local workspace when testing the browser. Set `POLICYCOMPASS_HOME`,
+`POLICYCOMPASS_FRAMEWORK_CACHE` and `POLICYCOMPASS_LIBRARY` to separate test folders,
+then start `python -m policycompass browser --no-browser`. The first two folders are
+created by the app; leave the library folder empty. The workspace's `instance.json`
+contains a temporary session credential, so do not publish it.
+
+With Node.js, Playwright 1.62.1 and Edge available, run:
+
+```powershell
+node tools/test_browser.cjs path/to/workspace/instance.json data/local/browser-screenshots
+```
+
+This tests framework setup, file selection, comparison, evidence, text escaping,
+reports, history, saved-file imports, settings, reload and quitting. It also checks
+a narrow layout and captures screenshots containing only generated test inputs.
+The script needs a fresh framework cache on each run and quits the application
+when it finishes successfully.
+
+To create and close an isolated workspace automatically, use
+`python tools/run_browser_check.py`. Add `--exe` with the path to the packaged
+`core/policycompass.exe` to exercise the release. Playwright must be installed in
+a location Node.js can resolve, such as a test-only directory on `NODE_PATH`.
+
+For compiled releases, run `tools/smoke_release.py` as described in
+[Windows builds](../docs/BUILD.md#check-the-build). It exercises document workers
+without relying on the developer's Python environment or publisher files.
+
 Desktop tests need a graphical Windows session. CI runs the fictional cases on
 Windows. The document worker uses Windows Job Objects to limit memory and refuses
 to parse documents on other platforms.

@@ -4,6 +4,11 @@ Run commands from the repository folder after installing
 `requirements.txt`. Use `python -m policycompass --help` to list commands, or add
 `--help` after a command to see its options.
 
+In a compiled release, replace `python -m policycompass` with
+`core/policycompass.exe`. Start the local browser workspace with
+`python -m policycompass browser`. The original desktop uses
+`python -m policycompass open`.
+
 ## Download or import frameworks
 
 List installed editions:

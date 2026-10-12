@@ -7,8 +7,11 @@ the information they contain; saved comparisons are not encrypted by the app.
 
 ## Reopen an older comparison
 
+In the browser workspace, open **Saved comparisons** and import a `.policycompass`
+file. The app copies it into the workspace while preserving its saved runs.
+
 Older SQLite assessment files remain readable even if they have a different
-extension. In **Open**, choose **All files**, select the assessment, then use
+extension. In the original desktop's **Open** dialog, choose **All files**, select the assessment, then use
 **Save a copy** to save it with the `.policycompass` extension.
 
 Past runs keep the wording, results, identifiers and engine version used at the
@@ -28,6 +31,7 @@ The default locations are:
 |---|---|
 | Downloaded and imported frameworks | `%LOCALAPPDATA%/PolicyCompass/frameworks` |
 | Installed signed framework packages | `%LOCALAPPDATA%/PolicyCompass/corpus` |
+| Browser comparisons and settings | `%LOCALAPPDATA%/PolicyCompass/browser` |
 
 Developers can set these environment variables before starting the app:
 
@@ -36,6 +40,7 @@ Developers can set these environment variables before starting the app:
 | `POLICYCOMPASS_FRAMEWORK_CACHE` | Folder for downloaded and imported frameworks |
 | `POLICYCOMPASS_LIBRARY` | Prepared library containing `sources/files` and `data/corpus` |
 | `POLICYCOMPASS_SOURCES` | Publisher-file folder used when calling `framework_core` directly |
+| `POLICYCOMPASS_HOME` | Browser workspace containing comparisons, settings and temporary uploads |
 
 For an isolated local demo cache in PowerShell:
 
@@ -68,5 +73,5 @@ local dependencies and builds are excluded from Git. The records in
 files came from and the recorded permission conditions. They do not grant new
 permission to redistribute a source or provide a licence for the application.
 
-The desktop and command line share `policycompass/`. Framework models and file
+The browser, desktop and command line share `policycompass/`. Framework models and file
 readers live in `framework_core/`.

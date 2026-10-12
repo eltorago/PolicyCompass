@@ -1,9 +1,13 @@
-# Compare policies with frameworks
+# Desktop guide: compare policies with frameworks
 
 PolicyCompass shows where your policy documents mention subjects in the **WA CSP**,
 **ASD ISM**, **ASD mitigation strategies**, **NIST CSF**, **PSPF**, **NIST SP 800-53**
 and **AESCSF**, and which requirements have no matching passage.
 Choose one framework or any combination. Results stay separate for each framework.
+
+The Windows release opens the [browser workspace](../docs/BROWSER.md) by default.
+This guide covers the original Tkinter desktop, which remains available from
+source or with `core/policycompass.exe open` in the release folder.
 
 ## Open PolicyCompass
 

@@ -7,7 +7,7 @@ from . import ENGINE_VERSION
 from .contracts import PolicyError, envelope
 from . import alignment, corpus, service, store, reports
 
-COMMANDS = {"frameworks", "compare", "analyse", "open", "requirements", "evidence", "gaps", "mappings", "report", "validate", "corpus", "review", "finalise", "snapshot", "--version"}
+COMMANDS = {"frameworks", "compare", "analyse", "open", "browser", "requirements", "evidence", "gaps", "mappings", "report", "validate", "corpus", "review", "finalise", "snapshot", "--version"}
 
 
 def parser():
@@ -67,11 +67,17 @@ def parser():
     p.add_argument("--force", action="store_true")
     p = commands.add_parser("open")
     p.add_argument("assessment", nargs="?")
+    p = commands.add_parser('browser', help='Start the local browser workspace')
+    p.add_argument('--no-browser', action='store_true', help='Start without opening a browser (for automated checks)')
     return root
 
 
 def execute(args):
     operation = args.command
+    if operation == 'browser':
+        from .local_web import launch
+        launch(not args.no_browser)
+        return None, 0
     if operation == "open":
         from .desktop import launch
         launch(args.assessment)

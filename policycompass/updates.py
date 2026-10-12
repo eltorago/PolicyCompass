@@ -39,7 +39,9 @@ def approved_url(url, framework):
     return url
 
 
-def download(url, framework):
+def download(url, framework, cancel=None):
+    if cancel and cancel.is_set():
+        raise KeyboardInterrupt
     approved_url(url, framework)
     class Redirects(HTTPRedirectHandler):
         def redirect_request(self, request, fp, code, message, headers, newurl):
@@ -54,6 +56,8 @@ def download(url, framework):
             raise PolicyError('Framework download exceeds 16 MiB.', 5)
         parts, total = [], 0
         while True:
+            if cancel and cancel.is_set():
+                raise KeyboardInterrupt
             block = response.read(65536)
             if not block:
                 break
@@ -83,10 +87,10 @@ class Links(HTMLParser):
             self.href, self.label = None, []
 
 
-def discover(framework):
+def discover(framework, cancel=None):
     if framework in DIRECT_DOWNLOADS:
         return DIRECT_DOWNLOADS[framework]
-    body, page = download(PAGES[framework], framework)
+    body, page = download(PAGES[framework], framework, **({'cancel': cancel} if cancel else {}))
     parser = Links(); parser.feed(body.decode('utf-8'))
     candidates = []
     for href, label in parser.links:
@@ -190,7 +194,7 @@ def update_lock(root):
         lock.unlink(missing_ok=True)
 
 
-def update(frameworks=None, local_import=None, progress=None):
+def update(frameworks=None, local_import=None, progress=None, cancel=None):
     selected = list(dict.fromkeys(frameworks if frameworks is not None else AUTOMATIC))
     if not selected or not set(selected) <= set(NAMES) or (local_import and len(selected) != 1):
         raise PolicyError('Select a supported framework; local import accepts one framework at a time.', 2)
@@ -198,6 +202,8 @@ def update(frameworks=None, local_import=None, progress=None):
     results = []
     with update_lock(root):
         for key in selected:
+            if cancel and cancel.is_set():
+                raise KeyboardInterrupt
             if progress: progress('Checking ' + key + '…')
             stage = root/('.stage-' + uuid.uuid4().hex)
             stage.mkdir()
@@ -209,11 +215,14 @@ def update(frameworks=None, local_import=None, progress=None):
                     body, uri = source.read_bytes(), PAGES[key]
                     acquisition = 'User-selected local import; latest version not verified online'
                 else:
-                    body, uri = download(discover(key), key)
+                    options = {'cancel': cancel} if cancel else {}
+                    body, uri = download(discover(key, **options), key, **options)
                     acquisition = 'Downloaded from official publisher source'
+                if cancel and cancel.is_set():
+                    raise KeyboardInterrupt
                 path = stage/FILENAMES[key]
                 path.write_bytes(body)
-                parsed = extract_worker(path, framework=key)
+                parsed = extract_worker(path, framework=key, **({'cancel': cancel} if cancel else {}))
                 metadata = parsed['framework']
                 metadata['sourceUri'] = PAGES[key]
                 metadata['extractHash'] = fingerprint(parsed['requirements'])

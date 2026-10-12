@@ -44,12 +44,14 @@ not automatically count as a match in another.
 
 ## Start a comparison
 
-Use **Python 3.13 on Windows**, with Tkinter installed. From the repository folder:
+Download the unsigned **Windows installer** from
+[Releases](https://github.com/eltorago/PolicyCompass/releases). Choose the file
+ending in `windows-x64-setup.exe`, install it, then open the **PolicyCompass**
+shortcut. The application opens in your default browser. Python and its libraries
+are included; there are no terminal commands to run.
 
-```powershell
-python -m pip install -r requirements.txt
-python -m policycompass open
-```
+The portable ZIP is also available. Extract the entire folder and open
+`PolicyCompass.exe`. Keep its supporting files beside the launcher.
 
 1. Open **Framework updates**, select the frameworks you need, and choose
    **Download updates**.
@@ -60,12 +62,19 @@ python -m policycompass open
    your frameworks. If using ISM, choose all controls or an Essential Eight maturity level.
 4. Add your files or ZIP archives, then choose **Compare and save**.
 
-To try it out, follow the [demo walkthrough](docs/DEMO.md). It uses eight fictional
+Comparisons are saved automatically in the local workspace. Use **Saved
+comparisons** to reopen them, **Download comparison** to keep a separate copy, or
+**Reports** to export results. Use **Quit PolicyCompass** to close the local
+application. See the [browser guide](docs/BROWSER.md) for storage and troubleshooting.
+
+The repository also has a [demo walkthrough](docs/DEMO.md). It uses eight fictional
 policies covering governance, access, training, information handling, suppliers,
 secure systems, development and recovery. Each has an owner, responsibilities,
-working requirements and a review process.
+working requirements and a review process. These example policies are excluded
+from the executable release.
 
-The [user guide](policycompass/README.md) covers results, saved files and reports.
+The [browser guide](docs/BROWSER.md) covers results, saved files and reports.
+The [desktop guide](policycompass/README.md) covers the original Tkinter interface.
 
 ## Reading the results
 
@@ -111,7 +120,14 @@ python -m pip install -r requirements-dev.txt
 python -m unittest discover -s tests -v
 ```
 
-The desktop and command line share the `policycompass/` application code.
+To run the browser application from source:
+
+```powershell
+python -m policycompass browser
+```
+
+The original Tkinter desktop remains available with `python -m policycompass open`.
+The browser, desktop and command line share the `policycompass/` application code.
 `framework_core/` contains the framework models and loaders. Publisher files,
 private policies and generated comparisons are excluded from Git.
 

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PolicyCompass</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <aside class="sidebar" aria-label="Workspace navigation">
+    <a class="brand" href="#new"><img src="/favicon.svg" width="36" height="36" alt=""><span>PolicyCompass<small>POLICY &amp; FRAMEWORK REVIEW</small></span></a>
+    <p class="nav-label">WORKSPACE</p>
+    <nav id="navigation">
+      <button data-page="new" aria-current="page">New comparison</button>
+      <button data-page="library">Saved comparisons</button>
+      <button data-page="results" disabled>Results</button>
+      <button data-page="frameworks">Framework updates</button>
+      <button data-page="settings">Settings &amp; help</button>
+    </nav>
+    <div class="sidebar-bottom"><span class="local-dot">Runs on your computer</span><p>Policy text stays local.<br>No account or AI service needed.</p><small id="version"></small><button id="quit" class="quiet">Quit PolicyCompass</button></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><span id="breadcrumb">Workspace / New comparison</span><span class="local-pill">LOCAL WORKSPACE</span></header>
+    <div id="notice" role="alert" hidden></div>
+    <div id="job" role="status" aria-live="polite" hidden><span id="job-message"></span><button id="cancel" class="secondary">Cancel</button></div>
+    <main id="main" tabindex="-1"><p class="loading">Opening your workspace…</p></main>
+    <footer>PolicyCompass finds related wording. Review the passages before drawing conclusions.</footer>
+  </div>
+</body>
+</html>
