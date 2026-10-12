@@ -1,6 +1,6 @@
 # PolicyCompass
 
-Find where your policies address a cybersecurity framework, and where the wording is missing.
+Find passages in your policies that relate to a cybersecurity framework, and requirements that need a closer look.
 
 PolicyCompass reads Word documents, text PDFs, Markdown, text files and ZIP archives.
 For each framework requirement, it shows the relevant passages and their locations in
@@ -60,7 +60,11 @@ python -m policycompass open
    your frameworks. If using ISM, choose all controls or an Essential Eight maturity level.
 4. Add your files or ZIP archives, then choose **Compare and save**.
 
-To try it out, use the fictional documents in [examples/framework-alignment](examples/framework-alignment/).
+To try it out, follow the [demo walkthrough](docs/DEMO.md). It uses eight fictional
+policies covering governance, access, training, information handling, suppliers,
+secure systems, development and recovery. Each has an owner, responsibilities,
+working requirements and a review process.
+
 The [user guide](policycompass/README.md) covers results, saved files and reports.
 
 ## Reading the results
@@ -70,9 +74,10 @@ or **Unable to check**. Open a result to read the framework text beside the matc
 passages. Reports are available as HTML, CSV, Markdown or JSON.
 
 Review the passages before drawing conclusions. Similar wording can have a different
-meaning, and an implemented control may be documented elsewhere. The tool checks
-document coverage; it cannot verify that controls operate effectively. Scanned PDFs
-need text recognition before import.
+meaning, and a requirement with no match may be covered in different words or another
+document. PolicyCompass checks wording; it cannot verify that controls work in
+practice. Scanned PDFs need text recognition before import. See
+[how matching works](docs/MATCHING.md) for the main limits.
 
 Saved `.policycompass` files retain the documents' extracted text, framework wording
 and comparison history. Updating a framework affects new comparisons; saved runs
@@ -110,5 +115,6 @@ The desktop and command line share the `policycompass/` application code.
 `framework_core/` contains the framework models and loaders. Publisher files,
 private policies and generated comparisons are excluded from Git.
 
-For a change, include a test that demonstrates the behaviour, run the suite, and
-update the relevant guide. See [testing](tests/README.md) and [Windows builds](docs/BUILD.md).
+When changing application behaviour, add a regression check, run the relevant tests
+and update the guide. Documentation-only changes need a check of the instructions
+and links. See [testing](tests/README.md) and [Windows builds](docs/BUILD.md).

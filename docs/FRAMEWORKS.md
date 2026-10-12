@@ -1,10 +1,11 @@
 # Framework sources
 
 The app downloads publisher files when you choose **Download updates**. It keeps
-a local copy and records the file hash, download address, edition and parser
-version. A failed download or parse leaves the current version in place.
+a local copy and records the edition, download address and a hash that identifies
+the downloaded file. It also records which reader processed the file. If a download
+fails or the app cannot read the new file, it keeps the current version.
 
-| Choice | Source and format | Compared rows |
+| Choice | Source and format | What the app compares |
 |---|---|---|
 | WA CSP | [WA Government policy page](https://www.wa.gov.au/government/publications/wa-government-cyber-security-policy), PDF | Numbered requirements, including nested controls in the 2026 policy |
 | ASD ISM | [ASD OSCAL releases](https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/ism-oscal-releases), JSON from ASD's GitHub mirror | ISM security controls |
@@ -16,17 +17,17 @@ version. A failed download or parse leaves the current version in place.
 
 ## WA policy editions
 
-The download selects the newest non-draft policy PDF identified on the official
-page. The parser supports the 2024 and 2026 editions and reads the edition from the
-PDF itself. It rejects an unknown layout rather than silently labelling it as a
-supported policy. The 2026 importer preserves nested references such as `3.1.1a`
-and includes parent conditions, including the Protect implementation deadline.
-Footnotes, running page headings and the separate guidance section are excluded
+The app downloads the newest published policy PDF listed on the official page.
+It supports the 2024 and 2026 editions and reads the edition from the PDF itself.
+An unfamiliar layout is rejected so the app does not give it the wrong edition
+or read it incorrectly. For 2026, references such as `3.1.1a` stay intact. Parent
+conditions, including the Protect implementation deadline, appear as context.
+Footnotes, repeated page headings and the separate guidance section are excluded
 from the requirement text.
 
-The earlier training rules are tied to their reviewed 2024 source hash. They do
-not carry over to the 2026 text. The wording comparison works for both editions.
-Saved comparisons retain their own framework snapshots after an update.
+The older automated training checks only run against the exact reviewed 2024
+source. Wording comparisons work for both editions. Saved comparisons keep the
+framework text they used after an update.
 
 ## Essential Eight
 
@@ -34,12 +35,12 @@ Essential Eight is part of the ISM and the ASD mitigation strategies. It is not 
 separate framework choice in PolicyCompass.
 
 Choose **All ISM controls**, **ML1**, **ML2** or **ML3** when creating a comparison.
-The filter uses ASD's `essential-eight-applicability` properties in the downloaded
-ISM catalogue. It preserves the original ISM identifiers and does not count the
-controls twice. The selected level is saved with the framework and appears in
-reports. An old cache without these tags needs a fresh ISM download.
+The filter uses the maturity tags supplied by ASD in its ISM catalogue. Original
+ISM identifiers are kept and controls are counted once. The selected level is
+saved with the framework and appears in reports. Download ISM again if an older
+copy does not include the tags.
 
-The mitigation-strategies view retains ASD's published effectiveness ratings.
+The mitigation-strategies view keeps ASD's published effectiveness ratings.
 The eight strategies rated **Essential** can be found in their source context.
 The February 2017 strategies are shown with that edition; the app does not rewrite
 the historical publication with newer ISM wording.
@@ -50,8 +51,8 @@ the historical publication with newer ISM wording.
 2. Download the **AESCSF Framework Core** workbook, rather than a toolkit.
 3. Choose **Import AESCSF workbook** and select the downloaded `.xlsx` file.
 
-The app reads the workbook's edition and practice identifiers, validates its
-structure and copies it into the framework cache. No filename changes are needed.
+The app checks the workbook, reads its edition and practice identifiers, then
+copies it into the local framework folder. No filename changes are needed.
 Importing a newer workbook retains the previous version and existing comparisons.
 If the workbook is invalid, the import leaves the active version unchanged.
 
@@ -66,11 +67,12 @@ automated downloads. Its dedicated import path is available in the same screen.
 
 ## Interpreting coverage
 
-PSPF applicability and start dates remain visible as context; the app does not
-choose which obligations legally apply to an entity. Its reporting-question
-mandatory flag is not treated as a separate control requirement. NIST control
-parameters remain labelled where the organisation must supply a value.
+PSPF applicability and start dates appear with the requirement. A reviewer still
+needs to decide which obligations apply. A mandatory reporting question does not
+become an extra control in the comparison. NIST placeholders stay visible where
+the organisation must choose a value, such as a review interval.
 
 Publisher files and extracted text stay in the local cache and are not bundled
-with the application. Framework matching reports document coverage. Reviewers
-still need to assess applicability, meaning and evidence of implementation.
+with the application. Matches show shared wording. Reviewers need to check meaning,
+scope and evidence that controls work. The [matching guide](MATCHING.md) explains
+the result labels and common reasons for missed matches.

@@ -23,8 +23,8 @@ you need and choose **Download updates**. If a publisher blocks a download,
 download its file yourself and use **Import framework file** with that framework
 selected. For AESCSF, use **Open AEMO download page** to obtain the Core workbook,
 then **Import AESCSF workbook**. Keep its original filename; the app copies and
-checks it. A failed import keeps your previous copy. Existing prepared local
-source collections also work.
+checks it. A failed import keeps your previous copy. Developers can also use a
+[prepared local library](../docs/MIGRATION.md#choose-where-frameworks-are-stored).
 
 ## Add documents
 
@@ -46,10 +46,11 @@ You can select up to 250 documents in total, including files inside archives.
 Each input is limited to 16 MiB; ZIP contents may expand to 32 MiB. Scanned PDFs
 need text recognition before importing. Duplicate documents are counted once.
 
-For a demonstration, select both files in
-[the example policy folder](../examples/framework-alignment/). They are
-fictional documents with access, training, backup and incident-response content.
-You can also put those files in a ZIP and import that archive.
+For a demonstration, select all eight Markdown files in
+[the example policy folder](../examples/framework-alignment/). They describe a
+fictional organisation's working policies. You can also put them in a ZIP and
+import that archive. The [demo walkthrough](../docs/DEMO.md) suggests requirements
+to inspect and explains the expected gaps.
 
 ## Read the results
 
@@ -69,9 +70,14 @@ file name and page, paragraph or table location.
 to add to your policies. It keeps unreadable-document cases labelled separately.
 **Documents** shows what was read, including each file inside a ZIP.
 
-Matching uses local wording, spelling variants and common technical acronyms.
-It finds topics and passages; it does not decide whether the policy satisfies
-every part of a requirement. Very different wording can need a manual search.
+Matching recognises wording, spelling variants and a small set of technical
+abbreviations. It reads wrapped Markdown paragraphs as continuous text. A match
+to a requirement's wording can appear as **Related wording** when its wider
+conditions are missing. Check those conditions alongside the passage.
+
+It does not decide whether a policy satisfies every part of a requirement.
+Very different wording, short statements and requirements with several separate
+parts often need a manual search. See [how matching works](../docs/MATCHING.md).
 Up to five of the clearest passages are shown per requirement, with the total
 match count. Framework mappings do not transfer matches between requirements.
 
@@ -97,7 +103,7 @@ Use **Framework updates → Download updates** to check for newer publisher copi
 Failed updates leave the previous copy in place. New comparisons use the updated
 frameworks; saved comparisons retain their original wording and results.
 WA CSP updates select the newest published policy, including the 2026 edition.
-The 2024 training rules are not applied to the revised policy.
+Older automated training checks only apply to the reviewed 2024 source.
 See [framework sources and editions](../docs/FRAMEWORKS.md).
 
 ## More detail

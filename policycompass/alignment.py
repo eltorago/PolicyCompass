@@ -11,7 +11,7 @@ import unicodedata
 from framework_core.terms import ALIASES, STOPWORDS, normalise_token, tokenise
 from .contracts import PolicyError
 
-VERSION = 'policy-topics-1'
+VERSION = 'policy-topics-2'
 STATUSES = ('Mentioned', 'Related wording', 'Not mentioned', 'Unable to check')
 DESCRIPTION = 'Matches compare wording and topics, with the original passages alongside each requirement.'
 MAX_MATCHES = 5
@@ -46,10 +46,30 @@ def terms(text):
     return dict(found)
 
 
-def windows(text):
+BLOCK_LINE = re.compile(r'^\s*(?:#{1,6}\s|[-*+>]|\d+[.)]\s|[a-zA-Z][.)]\s|\||```|~~~)')
+
+
+def sentence_text(text, soft_wrap):
+    """Mask Markdown soft line breaks without changing source character offsets."""
+    if not soft_wrap:
+        return text
+    lines = text.splitlines(keepends=True)
+    masked = []
+    for index, line in enumerate(lines):
+        body = line.rstrip('\r\n')
+        following = lines[index + 1] if index + 1 < len(lines) else ''
+        # Lists, headings, tables and explicit hard breaks remain separate.
+        join = (body.strip() and following.strip() and
+                not BLOCK_LINE.match(body) and not BLOCK_LINE.match(following) and
+                not body.endswith(('  ', '\\', ':')))
+        masked.append(body + (' ' * (len(line) - len(body)) if join else line[len(body):]))
+    return ''.join(masked)
+
+
+def windows(text, soft_wrap=False):
     # Paragraphs/pages can be long. Match within a sentence, never by joining
     # unrelated passages. Bound sentence windows without losing any source text.
-    for sentence in re.finditer(r'[^.!?;\n]+(?:[.!?;]|$)', text):
+    for sentence in re.finditer(r'[^.!?;\n]+(?:[.!?;]|\n|$)', sentence_text(text, soft_wrap)):
         start = sentence.start()
         while start < sentence.end():
             end = min(start + 1600, sentence.end())
@@ -77,7 +97,7 @@ def compare(requirements, documents, cancel=None):
     indexed, postings = [], defaultdict(set)
     for doc in active:
         for passage in doc['passages']:
-            for start, end in windows(passage['text']):
+            for start, end in windows(passage['text'], soft_wrap=doc.get('format') == '.md'):
                 if cancel and cancel.is_set():
                     raise KeyboardInterrupt
                 text = passage['text'][start:end]
@@ -106,14 +126,23 @@ def compare(requirements, documents, cancel=None):
         core_terms = terms(requirement['authoritativeText'])
         weights = weights_by_framework[requirement['frameworkId']]
         total_weight = sum(weights[t] for t in query)
+        core_weight = sum(weights[t] for t in core_terms)
         for index in sorted(candidates):
             doc, passage, start, end, tokens = indexed[index]
             text = passage['text'][start:end]
             named = any(re.search(r'(?<!\w)' + re.escape(ref) + r'(?!\w)', text, re.I) for ref in references)
             shared = set(query) & set(tokens)
+            core_shared = set(core_terms) & set(tokens)
             proportion = sum(weights[t] for t in sorted(shared)) / total_weight if total_weight else 0
             enough = len(shared) >= 3 or len(query) == 2 and len(shared) == 2
-            if not named and not (enough and proportion >= .35):
+            # Parent descriptions and applicability notes can dwarf a short
+            # requirement. Retrieve its wording separately, but only as a lead
+            # for review: the full context still governs a clear match.
+            core_proportion = sum(weights[t] for t in sorted(core_shared)) / core_weight if core_weight else 0
+            core_enough = len(core_shared) >= 3 or len(core_terms) == 2 and len(core_shared) == 2
+            contextual_match = enough and proportion >= .35
+            core_match = core_enough and core_proportion >= .35
+            if not named and not contextual_match and not core_match:
                 continue
             cautions = []
             if CAUTION.search(text):
@@ -121,7 +150,13 @@ def compare(requirements, documents, cancel=None):
             heading = passage['locator'].get('heading', '')
             if re.search(r'\b(?:reference|glossary|example|background)\b', heading, re.I):
                 cautions.append('This passage appears in reference or background material.')
-            specific = bool(core_terms) and len(shared & set(core_terms)) >= min(2, len(core_terms))
+            if core_match and not contextual_match:
+                cautions.append('The passage overlaps the requirement wording; check its parent conditions and scope separately.')
+            # Very short queries can lose most of their meaning to stopwords.
+            # Two isolated terms (such as "designated" and "owner") are only a
+            # lead. With three or four core terms, require all of them for a
+            # clear match so a missing qualifier cannot be hidden by context.
+            specific = len(core_shared) >= (max(3, len(core_terms)) if len(core_terms) <= 4 else 3)
             strong = enough and specific and proportion >= .65 and not cautions
             spans = sorted({(a, b) for term in shared for a, b in tokens[term]})
             matches.append(dict(documentId=doc['id'], documentHash=doc['sha256'], documentName=doc['name'],
@@ -129,8 +164,11 @@ def compare(requirements, documents, cancel=None):
                 start=start, end=end, matchedSpans=[dict(start=a, end=b) for a, b in spans],
                 matchedTerms=sorted({text[a:b] for a, b in spans}),
                 status='Mentioned' if strong else 'Related wording', cautions=cautions,
-                reason='Named framework reference' if named and not enough else 'Shared requirement wording',
-                score=round(proportion, 6)))
+                reason='Requirement wording; wider context needs review' if core_match and not contextual_match else
+                       'Named framework reference' if named and not enough else 'Shared requirement wording',
+                # Rank passages by the requirement itself so a broad parent
+                # description cannot displace a more useful child-level match.
+                score=round(core_proportion, 6)))
         # Keep the best window from each passage, then the five clearest passages.
         matches.sort(key=lambda m: (m['status'] != 'Mentioned', -m['score'], m['documentId'], m['passageId'], m['start']))
         unique = {}

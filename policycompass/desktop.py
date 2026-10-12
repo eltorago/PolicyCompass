@@ -89,7 +89,7 @@ class Desktop(ttk.Frame):
         self.graph = tk.Canvas(self.pages["Framework relationships"], height=180, background="white")
         self.graph.pack(fill="x")
         self.edges = self.tree(self.pages["Framework relationships"], ("Source", "Relationship", "Target", "Evidence relation"))
-        self.graph_status = tk.StringVar(value="Choose a requirement to see its bounded neighbourhood.")
+        self.graph_status = tk.StringVar(value="Choose a requirement to see its links to other frameworks.")
         ttk.Label(self.pages["Framework relationships"], textvariable=self.graph_status).pack(anchor="w")
         ttk.Label(self.pages["Reports"], text="Export framework alignment and requirements not mentioned as HTML, CSV, Markdown or JSON.\nChoose which frameworks and whether to include the matching policy passages.", wraplength=900).pack(anchor="w", pady=10)
         ttk.Button(self.pages["Reports"], text="Export report", command=self.export).pack(anchor="w")
@@ -116,8 +116,8 @@ class Desktop(ttk.Frame):
         try:
             installed = corpus.installed()
         except PolicyError as error:
-            installed = {'status': str(error), 'historicalAssessments': 'Can still be opened without the corpus.'}
-        self.set_text(self.settings, "Engine " + ENGINE_VERSION + "\n\nNo listener, telemetry or AI inference. Framework downloads occur only through the explicit update action.\n\nComparisons retain extracted text so you can inspect the matching passages. Original files are not embedded.\n\nAssessment files are ordinary, unencrypted SQLite databases. Store them in an approved local folder.\n\nCorpus: " + json.dumps(installed, ensure_ascii=False, indent=2))
+            installed = {'status': str(error), 'historicalAssessments': 'Saved comparisons can still be opened without the installed frameworks.'}
+        self.set_text(self.settings, "Version " + ENGINE_VERSION + "\n\nMatching runs on your computer without an AI service. The app downloads frameworks only when you request an update.\n\nSaved comparisons keep extracted text so you can read the matching passages. They do not include copies of the original files.\n\nComparison files are not encrypted by the app. Store them in a suitable local folder.\n\nInstalled frameworks: " + json.dumps(installed, ensure_ascii=False, indent=2))
         master.bind("<Control-o>", lambda _: self.open())
         master.bind("<Control-n>", lambda _: self.new())
         master.bind("<Control-s>", lambda _: self.snapshot())
