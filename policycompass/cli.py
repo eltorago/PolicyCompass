@@ -7,7 +7,7 @@ from . import ENGINE_VERSION
 from .contracts import PolicyError, envelope
 from . import alignment, corpus, service, store, reports
 
-COMMANDS = {"frameworks", "compare", "analyse", "open", "requirements", "evidence", "gaps", "mappings", "report", "validate", "corpus", "review", "finalise", "snapshot", "--version"}
+COMMANDS = {"frameworks", "compare", "analyse", "open", "browser", "requirements", "evidence", "gaps", "mappings", "report", "validate", "corpus", "review", "finalise", "snapshot", "--version"}
 
 
 def parser():
@@ -33,6 +33,7 @@ def parser():
             p.add_argument("--framework", default="wa-csp")
             p.add_argument("--framework-version")
             p.add_argument("--corpus-version")
+            p.add_argument("--ism-maturity", choices=("ML1", "ML2", "ML3"), help="Compare only ISM controls tagged for this Essential Eight maturity level.")
             p.add_argument("--also-assess", action="append", default=[])
             p.add_argument("--recurse", action="store_true")
             p.add_argument("--assessment")
@@ -54,7 +55,7 @@ def parser():
         if name == "corpus":
             p.add_argument("action", choices=("list", "verify", "install", "update"))
             p.add_argument("package", nargs="?")
-            p.add_argument('--framework', dest='update_frameworks', action='append', choices=('wa-csp','ism','aescsf'))
+            p.add_argument('--framework', dest='update_frameworks', action='append', choices=tuple(corpus.REVIEW_FRAMEWORKS))
             p.add_argument('--import-file', help='Import one downloaded publisher file for the selected framework.')
     p = commands.add_parser("report")
     p.add_argument("assessment")
@@ -66,11 +67,17 @@ def parser():
     p.add_argument("--force", action="store_true")
     p = commands.add_parser("open")
     p.add_argument("assessment", nargs="?")
+    p = commands.add_parser('browser', help='Start the local browser workspace')
+    p.add_argument('--no-browser', action='store_true', help='Start without opening a browser (for automated checks)')
     return root
 
 
 def execute(args):
     operation = args.command
+    if operation == 'browser':
+        from .local_web import launch
+        launch(not args.no_browser)
+        return None, 0
     if operation == "open":
         from .desktop import launch
         launch(args.assessment)
@@ -95,7 +102,7 @@ def execute(args):
     if operation in ("compare", "analyse"):
         run = service.analyse(args.inputs, args.name, args.scope, args.organisation, args.framework,
                               args.framework_version, args.corpus_version, args.also_assess, args.recurse,
-                              args.document_status, args.retention)
+                              args.document_status, args.retention, ism_maturity=args.ism_maturity)
         if args.assessment:
             store.save(args.assessment, run)
         if operation == 'compare':

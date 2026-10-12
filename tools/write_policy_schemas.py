@@ -62,7 +62,8 @@ def generate():
                              matchStrength={'enum':['Strong','Moderate','Weak','Unknown']},context={'const':'same_sentence'},limitations=strings))
     base=dict(id=string,frameworkId=string,officialReference=string,heading=string,parentId=nullable,authoritativeText=string,
               context=string,sourceLocator=ref('locator'),obligations=array(ref('atom'),50))
-    defs['requirement']=obj(base)
+    defs['requirement']=obj(dict(base))
+    defs['requirement']['properties']['ismMaturityLevels']=strings
     defs['alignmentMatch']=obj(dict(documentId=string,documentHash=string,documentName=string,passageId=string,
         excerpt=string,locator=ref('locator'),start={'type':'integer','minimum':0},end={'type':'integer','minimum':1},
         matchedSpans=array(obj(dict(start={'type':'integer','minimum':0},end={'type':'integer','minimum':1}))),
@@ -75,6 +76,7 @@ def generate():
                             atomResults=array(obj(dict(id=string,state={'enum':['NotAssessed','Conflict','Ambiguous','Matched','Missing']}))),
                             evidence=array(ref('evidence')),flags=strings,candidateProportion={'type':['number','null'],'minimum':0,'maximum':1},missingObligations=strings))
     defs['finding']['properties']['alignment']=ref('alignment')
+    defs['finding']['properties']['ismMaturityLevels']=strings
     defs['passage']=obj(dict(id=string,text=string,locator=ref('locator')))
     document=dict(id=string,sha256=string,name=string,path=string,format=string,status={'enum':['Ready','Incomplete','Failed']},
                   approvalStatus={'enum':['approved','draft','unknown','superseded']},effectiveDate=nullable,included=boolean,
@@ -82,6 +84,7 @@ def generate():
     document.update(archiveMember=string,archiveHash=string)
     defs['document']=obj(document,required=[k for k in document if k not in ('effectiveDate','extractedPassageCount','archiveMember','archiveHash')])
     defs['framework']=obj(dict(id=string,title=string,edition=string,sourceFile=nullable,extractHash=string,sourceUri=nullable,licence=string,sourceHash=nullable),required=['id','title','edition','extractHash'])
+    defs['framework']['properties']['profile']={'enum':['ML1','ML2','ML3']}
     defs['versions']=obj(dict(engine=string,corpus=string,frameworks=array(ref('framework'),100),rulesHash=string,normaliser=string,retrieval=string,parser=string))
     defs['versions']['properties']['alignment']=string
     defs['scope']=obj(dict(description=string,mode={'enum':['SingleDocument','PolicySet']},selectedDocumentIds=strings,

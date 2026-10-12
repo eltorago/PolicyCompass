@@ -1,13 +1,59 @@
-# Command line
+# Command line guide
 
-Use `python -m policycompass --help` for all commands and add `--help` after a
-command for its options. Downloads happen only when explicitly requested.
+Run commands from the repository folder after installing
+`requirements.txt`. Use `python -m policycompass --help` to list commands, or add
+`--help` after a command to see its options.
+
+In a compiled release, replace `python -m policycompass` with
+`core/policycompass.exe`. Start the local browser workspace with
+`python -m policycompass browser`. The original desktop uses
+`python -m policycompass open`.
+
+## Download or import frameworks
+
+List installed editions:
 
 ```powershell
 python -m policycompass frameworks --format json
-python -m policycompass corpus update --framework wa-csp --framework ism --framework aescsf
-python -m policycompass corpus update --framework aescsf --import-file C:/Frameworks/aescsf-framework-core.xlsx
-python -m policycompass compare policies.zip policy.docx --framework wa-csp --also-assess ism --scope "Current departmental policies" --assessment comparison.policycompass --format json
+```
+
+Download only the frameworks you need:
+
+```powershell
+python -m policycompass corpus update --framework wa-csp --framework ism --framework csf
+```
+
+With no `--framework` argument, `corpus update` downloads all six automatic
+frameworks. It needs internet access. Later comparisons use the local copies.
+AESCSF needs the Core workbook downloaded from AEMO:
+
+```powershell
+python -m policycompass corpus update --framework aescsf --import-file "C:/Downloads/AESCSF Core.xlsx"
+```
+
+See [framework sources](FRAMEWORKS.md) for the available editions and formats.
+
+## Compare documents
+
+```powershell
+python -m policycompass compare policies.zip policy.docx --framework wa-csp --also-assess ism --scope "Current business policies" --assessment comparison.policycompass --format json
+```
+
+Use files, folders or ZIP archives as inputs. Repeat `--also-assess` to add
+frameworks. Add `--recurse` to include subfolders outside ZIP archives. The
+`--scope` description is required so a reader knows what the comparison covers.
+Use `--assessment` to save the results for reopening and reports.
+
+For an Essential Eight review, include ISM and choose `--ism-maturity ML1`, `ML2`
+or `ML3`. Omit this option for the full ISM. The filter selects controls tagged
+by ASD for that level; it does not assign a maturity rating. Download ISM again
+if an older local copy does not contain the tags.
+
+The [demo walkthrough](DEMO.md) has commands using the supplied fictional policies.
+
+## Inspect and export results
+
+```powershell
 python -m policycompass requirements comparison.policycompass --status "Not mentioned" --format json
 python -m policycompass evidence comparison.policycompass --format json
 python -m policycompass gaps comparison.policycompass --format json
@@ -16,26 +62,43 @@ python -m policycompass report comparison.policycompass --framework ism --format
 python -m policycompass open comparison.policycompass
 ```
 
+`gaps` includes both **Not mentioned** and **Unable to check**. Keep the distinction:
+an unreadable document cannot establish that wording is absent. `validate` checks
+the saved file and reports whether the original documents have changed.
+
 Reports support HTML, CSV, Markdown and JSON. Repeat `--framework` on `report` to
-select several frameworks; omit it to include every assessed framework. Use
-`--summary-only` to omit excerpts and `--force` to replace an existing output.
+select several frameworks, or omit it to include all frameworks in the saved run.
+Use `--summary-only` to leave out matching policy passages. Framework wording still
+appears in the report. Use `--force` to replace an existing output file.
 
-Input limits are 250 documents, 16 MiB per input, 32 MiB expanded ZIP contents
-and eight million extracted characters per comparison. Scanned PDFs need OCR
-before import. Nested ZIPs and unsupported files are listed as skipped. Unsafe
-archives are rejected and duplicate documents are counted once.
+## File limits
 
-Rule-based analysis also limits generated evidence to 10,000 records and 16 MiB
-of serialized evidence per comparison. If either limit is reached, the analysis
-stops without saving partial results; split the inputs into smaller comparisons.
-Existing saved assessments remain readable. Opening an original document from a
-saved assessment requires a supported local file type and an unchanged hash.
+| Limit | Maximum |
+|---|---:|
+| Documents in one comparison, including ZIP members | 250 |
+| Each input file | 16 MiB |
+| Uncompressed ZIP contents | 32 MiB |
+| Extracted text in one comparison | 8 million characters |
+| Sentence windows searched | 50,000 |
 
-The CLI returns code 0 on success and 7 when results contain limitations, such as
-unreadable documents or failed framework updates. Other failures return nonzero
-codes and an error message. JSON output includes status, warnings and errors.
+A MiB is 1,048,576 bytes. Scanned PDFs need text recognition before import. Nested
+ZIPs and unsupported files are listed as skipped. Unsafe archives are rejected;
+duplicate documents are counted once. Split large inputs into smaller, clearly
+named comparisons when a limit is reached.
 
-Legacy `analyse`, `review`, `finalise`, `snapshot` and signed `corpus` commands
-remain available for existing saved assessments and automation. New document
-alignment workflows should use `compare`; it reports wording matches without
-requiring reviewer approval or claiming control effectiveness.
+Older rule-based analysis also stops at 10,000 evidence records or 16 MiB of
+stored evidence. It does not save a partial run after reaching either limit.
+Opening an original document from a saved comparison requires a supported local
+file type and a matching file hash.
+
+## Exit codes and older commands
+
+The command line returns `0` on success and `7` when it finishes with limitations,
+such as unreadable documents or a failed framework update. Other failures return
+a nonzero code and an error message. JSON output includes status, warnings and
+errors for scripts to check.
+
+`analyse`, `review`, `finalise`, `snapshot` and signed `corpus` package commands
+remain available for older assessments and scripts. Use `compare` for new wording
+comparisons. See [saved files and configuration](MIGRATION.md) and
+[how matching works](MATCHING.md).

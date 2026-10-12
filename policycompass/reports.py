@@ -62,11 +62,12 @@ def render(state, format='json', full=True, framework_ids=None):
     if format == 'csv':
         stream = io.StringIO(newline='')
         writer = csv.writer(stream, lineterminator='\n')
-        writer.writerow(['Comparison', 'Framework', 'Edition', 'Requirement', 'Framework text', 'Context', 'Status', 'Matching passages', 'Source locations', 'Match count', 'Search complete', 'Run', 'Method'])
+        writer.writerow(['Comparison', 'Framework', 'Edition', 'Profile', 'Requirement', 'Framework text', 'Context', 'Status', 'Matching passages', 'Source locations', 'Match count', 'Search complete', 'Run', 'Method'])
         editions = {f['id']:f['edition'] for f in data['versions']['frameworks']}
+        profiles = {f['id']:f.get('profile', '') for f in data['versions']['frameworks']}
         for row in data['requirements']:
             result = row['alignment']
-            writer.writerow([safe_cell(value) for value in (data['name'], row['frameworkId'], editions[row['frameworkId']],
+            writer.writerow([safe_cell(value) for value in (data['name'], row['frameworkId'], editions[row['frameworkId']], profiles[row['frameworkId']],
                 row['id'], row['authoritativeText'], row['context'], result['status'],
                 '\n\n'.join(m['excerpt'] for m in result['matches']), '\n'.join(location(m) for m in result['matches']),
                 result['matchCount'], result['searchComplete'], data['runId'], data['method'])])

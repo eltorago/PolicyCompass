@@ -1,0 +1,70 @@
+name: Windows release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: x64
+      - name: Install build dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Test the application
+        run: python -m unittest discover -s tests -v
+      - name: Prepare the installer compiler
+        shell: pwsh
+        run: |
+          $compilerHome = Join-Path $env:RUNNER_TEMP 'policycompass-inno'
+          $setup = Join-Path $env:RUNNER_TEMP 'innosetup-6.7.3.exe'
+          Invoke-WebRequest 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe' -OutFile $setup
+          if ((Get-FileHash -LiteralPath $setup -Algorithm SHA256).Hash -ne '9C73C3BAE7ED48D44112A0F48E66742C00090BDB5BEF71D9D3C056C66E97B732') { throw 'Installer compiler checksum mismatch.' }
+          $process = Start-Process -FilePath $setup -ArgumentList @('/PORTABLE=1','/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CURRENTUSER','/NOICONS',('/DIR="' + $compilerHome + '"')) -WindowStyle Hidden -PassThru -Wait
+          if ($process.ExitCode -ne 0) { throw 'Installer compiler setup failed.' }
+          "POLICYCOMPASS_ISCC=$compilerHome\ISCC.exe" >> $env:GITHUB_ENV
+      - name: Build unsigned installer and portable ZIP
+        run: python -m policycompass.build --installer --iscc "$env:POLICYCOMPASS_ISCC"
+      - name: Check the packaged application
+        run: python tools/smoke_release.py --exe data/local/browser-build/PolicyCompass/core/policycompass.exe
+      - name: Check the windowed launcher
+        run: python tools/smoke_launcher.py --launcher data/local/browser-build/PolicyCompass/PolicyCompass.exe
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check the packaged browser interface
+        shell: pwsh
+        run: |
+          npm install --prefix data/local/browser-test --no-audit --no-fund playwright@1.62.1
+          if ($LASTEXITCODE -ne 0) { throw 'Browser test dependency installation failed.' }
+          $env:NODE_PATH = Join-Path (Get-Location) 'data/local/browser-test/node_modules'
+          python tools/run_browser_check.py --exe data/local/browser-build/PolicyCompass/core/policycompass.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged browser checks failed.' }
+      - name: Save build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PolicyCompass-windows-x64
+          path: data/local/browser-build/release/*
+          if-no-files-found: error
+      - name: Publish the pilot release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          $version = python -c "from policycompass import ENGINE_VERSION; print(ENGINE_VERSION)"
+          if ($env:RELEASE_TAG -ne "v$version") { throw 'The tag must match ENGINE_VERSION.' }
+          $assets = (Get-ChildItem -LiteralPath data/local/browser-build/release -File).FullName
+          gh release create $env:RELEASE_TAG @assets --verify-tag --prerelease --title "PolicyCompass $version for Windows" --notes-file "docs/releases/$version.md"
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub release publication failed.' }

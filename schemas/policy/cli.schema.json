@@ -770,6 +770,13 @@
             "string",
             "null"
           ]
+        },
+        "profile": {
+          "enum": [
+            "ML1",
+            "ML2",
+            "ML3"
+          ]
         }
       },
       "required": [
@@ -1161,6 +1168,14 @@
         },
         "alignment": {
           "$ref": "#/$defs/alignment"
+        },
+        "ismMaturityLevels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 2000000
+          },
+          "maxItems": 20000
         },
         "review": {
           "$ref": "#/$defs/review"

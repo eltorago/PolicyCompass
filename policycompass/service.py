@@ -19,18 +19,22 @@ def now():
 
 
 def analyse(paths, name="Framework alignment", scope="Selected policy documents", organisation="", framework="wa-csp",
-            edition=None, corpus_version=None, also=(), recurse=False, approval="unknown", retention="extracted", cancel=None):
+            edition=None, corpus_version=None, also=(), recurse=False, approval="unknown", retention="extracted", cancel=None, ism_maturity=None, progress=None):
     if not scope.strip() or approval not in ("approved", "draft", "unknown", "superseded") or retention not in ("evidence", "extracted"):
         raise PolicyError("Choose a scope, document approval status and supported retention mode.", 2)
     selected = documents.select(paths, recurse)
     inputs, skipped = documents.expand_inputs(selected)
-    baseline = corpus.load(framework, edition, corpus_version, also)
+    if progress:
+        progress('Loading the selected frameworks…')
+    baseline = corpus.load(framework, edition, corpus_version, also, **({"ism_maturity": ism_maturity} if ism_maturity else {}))
     imported, duplicates = [], []
     seen = set()
     text_length = 0
-    for path, member in inputs:
+    for position, (path, member) in enumerate(inputs, 1):
         if cancel and cancel.is_set():
             raise KeyboardInterrupt
+        if progress:
+            progress(f'Reading document {position} of {len(inputs)}: {member or path.name}')
         try:
             doc = documents.extract_worker(path, cancel, member=member)
         except PolicyError as error:
@@ -106,6 +110,8 @@ def analyse(paths, name="Framework alignment", scope="Selected policy documents"
                    candidateProportion=None if auto in ("NotAssessed", "Ambiguous") else matched / len(states),
                    missingObligations=[a["id"] for a in atom_results if a["state"] != "Matched"])
         findings.append(req)
+    if progress:
+        progress(f'Comparing policy passages with {len(findings):,} requirements…')
     aligned = alignment.compare(findings, imported, cancel)
     for row in findings:
         row['alignment'] = aligned[row['id']]

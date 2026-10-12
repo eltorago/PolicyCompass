@@ -1,8 +1,13 @@
-# Compare policies with frameworks
+# Desktop guide: compare policies with frameworks
 
 PolicyCompass shows where your policy documents mention subjects in the **WA CSP**,
-**ASD ISM** and **AESCSF**, and which requirements have no matching passage.
+**ASD ISM**, **ASD mitigation strategies**, **NIST CSF**, **PSPF**, **NIST SP 800-53**
+and **AESCSF**, and which requirements have no matching passage.
 Choose one framework or any combination. Results stay separate for each framework.
+
+The Windows release opens the [browser workspace](../docs/BROWSER.md) by default.
+This guide covers the original Tkinter desktop, which remains available from
+source or with `core/policycompass.exe open` in the release folder.
 
 ## Open PolicyCompass
 
@@ -20,13 +25,18 @@ Built application folders can open without installing Python; see
 Before the first comparison, open **Framework updates**, select the frameworks
 you need and choose **Download updates**. If a publisher blocks a download,
 download its file yourself and use **Import framework file** with that framework
-selected. Existing prepared local source collections also work.
+selected. For AESCSF, use **Open AEMO download page** to obtain the Core workbook,
+then **Import AESCSF workbook**. Keep its original filename; the app copies and
+checks it. A failed import keeps your previous copy. Developers can also use a
+[prepared local library](../docs/MIGRATION.md#choose-where-frameworks-are-stored).
 
 ## Add documents
 
 1. Select **New comparison**.
 2. Give it a name, optionally enter your organisation, and describe the scope.
-3. Select the frameworks to compare against.
+3. Select the frameworks to compare against. For ISM, select all controls or the
+   Essential Eight ML1, ML2 or ML3 filter. This changes the selected ISM controls;
+   it does not create a second framework or calculate a maturity rating.
 4. Choose **Add files or ZIP archives**. Select several files at once with Ctrl
    or Shift, add files in batches, or choose one or more ZIPs.
 5. Select **Compare and save**, then choose a name for the `.policycompass` file.
@@ -40,10 +50,11 @@ You can select up to 250 documents in total, including files inside archives.
 Each input is limited to 16 MiB; ZIP contents may expand to 32 MiB. Scanned PDFs
 need text recognition before importing. Duplicate documents are counted once.
 
-For a demonstration, select both files in
-[the example policy folder](../examples/framework-alignment/). They are
-fictional documents with access, training, backup and incident-response content.
-You can also put those files in a ZIP and import that archive.
+For a demonstration, select all eight Markdown files in
+[the example policy folder](../examples/framework-alignment/). They describe a
+fictional organisation's working policies. You can also put them in a ZIP and
+import that archive. The [demo walkthrough](../docs/DEMO.md) suggests requirements
+to inspect and explains the expected gaps.
 
 ## Read the results
 
@@ -63,9 +74,14 @@ file name and page, paragraph or table location.
 to add to your policies. It keeps unreadable-document cases labelled separately.
 **Documents** shows what was read, including each file inside a ZIP.
 
-Matching uses local wording, spelling variants and common technical acronyms.
-It finds topics and passages; it does not decide whether the policy satisfies
-every part of a requirement. Very different wording can need a manual search.
+Matching recognises wording, spelling variants and a small set of technical
+abbreviations. It reads wrapped Markdown paragraphs as continuous text. A match
+to a requirement's wording can appear as **Related wording** when its wider
+conditions are missing. Check those conditions alongside the passage.
+
+It does not decide whether a policy satisfies every part of a requirement.
+Very different wording, short statements and requirements with several separate
+parts often need a manual search. See [how matching works](../docs/MATCHING.md).
 Up to five of the clearest passages are shown per requirement, with the total
 match count. Framework mappings do not transfer matches between requirements.
 
@@ -90,6 +106,9 @@ start a new comparison with the original documents to search the complete text.
 Use **Framework updates → Download updates** to check for newer publisher copies.
 Failed updates leave the previous copy in place. New comparisons use the updated
 frameworks; saved comparisons retain their original wording and results.
+WA CSP updates select the newest published policy, including the 2026 edition.
+Older automated training checks only apply to the reviewed 2024 source.
+See [framework sources and editions](../docs/FRAMEWORKS.md).
 
 ## More detail
 

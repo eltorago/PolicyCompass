@@ -1,43 +1,77 @@
-# Configuration and saved files
+# Saved files and configuration
 
-PolicyCompass includes the desktop, CLI, document and ZIP import, local matching,
-saved comparisons and history, reports, framework updates and signed corpus
-package verification. Shared framework models and loaders live in `framework_core/`.
+A `.policycompass` file contains extracted policy text, framework wording,
+comparison results and history. You can reopen it without downloading the
+frameworks again. Keep these files and exported reports in a folder suitable for
+the information they contain; saved comparisons are not encrypted by the app.
 
-## Saved comparisons
+## Reopen an older comparison
 
-New comparisons and snapshots use `.policycompass`. Existing SQLite comparisons
-remain readable regardless of their filename extension: select **All files** in
-Open, then **Save a copy** with the new extension. Historical runs retain their
-original engine version, evidence, identifiers and framework snapshots. New runs
-use PolicyCompass obligation identifiers. Original policy documents are needed
-only to reopen a source or make a new comparison.
+In the browser workspace, open **Saved comparisons** and import a `.policycompass`
+file. The app copies it into the workspace while preserving its saved runs.
 
-Signed corpus packages use `.policycompasspack`. Reinstall previously downloaded
-packages with `python -m policycompass corpus install <package-path>` to store them
-under the current extension. Verification checks package contents and signatures,
-not the input filename extension.
+Older SQLite assessment files remain readable even if they have a different
+extension. In the original desktop's **Open** dialog, choose **All files**, select the assessment, then use
+**Save a copy** to save it with the `.policycompass` extension.
 
-## Local configuration
+Past runs keep the wording, results, identifiers and engine version used at the
+time. A new framework download or matching change affects new runs. To search
+revised policies, choose **Compare new documents** and select the original files.
+The app keeps earlier runs in **History**.
 
-The default framework cache is `%LOCALAPPDATA%/PolicyCompass/frameworks`;
-signed corpus packages use `%LOCALAPPDATA%/PolicyCompass/corpus`.
+Some older files retained only selected passages. Make a new comparison from the
+original documents to search their full text. Originals are also needed when you
+choose to open a source document from the app.
 
-| Setting | Purpose |
+## Choose where frameworks are stored
+
+The default locations are:
+
+| Files | Windows folder |
 |---|---|
+| Downloaded and imported frameworks | `%LOCALAPPDATA%/PolicyCompass/frameworks` |
+| Installed signed framework packages | `%LOCALAPPDATA%/PolicyCompass/corpus` |
+| Browser comparisons and settings | `%LOCALAPPDATA%/PolicyCompass/browser` |
+
+Developers can set these environment variables before starting the app:
+
+| Setting | What it points to |
+|---|---|
+| `POLICYCOMPASS_FRAMEWORK_CACHE` | Folder for downloaded and imported frameworks |
 | `POLICYCOMPASS_LIBRARY` | Prepared library containing `sources/files` and `data/corpus` |
-| `POLICYCOMPASS_FRAMEWORK_CACHE` | Downloaded/imported framework cache |
-| `POLICYCOMPASS_SOURCES` | Prepared publisher-file cache for direct `framework_core` use |
+| `POLICYCOMPASS_SOURCES` | Publisher-file folder used when calling `framework_core` directly |
+| `POLICYCOMPASS_HOME` | Browser workspace containing comparisons, settings and temporary uploads |
 
-Use these names in existing shell and launch configurations. To reuse a prepared
-library or framework cache, set the appropriate path or import the publisher
-files through Framework updates. The application passes an explicit library path
-to its framework loaders; the standalone source setting applies to direct loader
-use. Existing installations are not modified automatically.
+For an isolated local demo cache in PowerShell:
 
-## Source data
+```powershell
+$env:POLICYCOMPASS_FRAMEWORK_CACHE = Join-Path (Get-Location) "data/local/demo-frameworks"
+python -m policycompass corpus update --framework wa-csp --framework csf
+```
 
-Publisher documents, extracted corpora, personal comparisons, local dependencies
-and generated builds are excluded from Git. `sources/permissions.json` and
-`sources/acquisition.json` retain source provenance and permission conditions;
-they are not a new permission review or a licence for the application.
+This setting applies to that shell and the app processes it starts. The app uses
+an explicit library path for its own loaders; `POLICYCOMPASS_SOURCES` is for direct
+loader use. Existing installations are not moved automatically.
+
+## Signed framework packages
+
+Signed packages use `.policycompasspack`. Reinstall an older package with:
+
+```powershell
+python -m policycompass corpus install "C:/Frameworks/package.policycompasspack"
+```
+
+The installer checks contents and signatures, regardless of the original filename,
+and stores the package with the current extension. It requires a trusted signing
+key configured by the maintainer. See [build and distribution](BUILD.md).
+
+## Files kept out of Git
+
+Publisher downloads, extracted framework text, private policies, saved comparisons,
+local dependencies and builds are excluded from Git. The records in
+`sources/permissions.json` and `sources/acquisition.json` describe where source
+files came from and the recorded permission conditions. They do not grant new
+permission to redistribute a source or provide a licence for the application.
+
+The browser, desktop and command line share `policycompass/`. Framework models and file
+readers live in `framework_core/`.

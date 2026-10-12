@@ -8,7 +8,7 @@ from .contracts import PolicyError
 # mapping, so the text layer renders them as U+FFFD. Matching on full stops
 # finds nothing at all here.
 _LEADER = re.compile(r"[\ufffd\u00b7\u2022\u2026]{3,}|\.{4,}")
-_FOOTER = re.compile(r"^\s*(\d+\s*\|\s*)?2024 WA Government Cyber Security Policy(\s*\|\s*\d+)?\s*$")
+_FOOTER = re.compile(r"^\s*(\d+\s*\|\s*)?20\d{2} WA Government Cyber Security Policy(\s*\|\s*\d+)?\s*$")
 _TOC_ENTRY = re.compile(r"^\s*(\d+(?:\.\d+){0,2})\.?\s+(.+?)\s*$")
 _LETTERED = re.compile(r"^\s*([a-z])\.\s+(.*)$")
 _FOOTNOTE = re.compile(r"^\s*\d+\s+[A-Z]")
@@ -180,11 +180,14 @@ def parse(path):
         if len(pdf.pages) > 100:
             raise PolicyError('Unsupported policy PDF.')
         lines = page_lines(pdf)
+        cover = ' '.join(' '.join(lines[:10]).split())
+        if cover.startswith('Western Australian Government Cyber Security Policy 2026'):
+            return parse_2026(pdf)
     if sum(len(line) for line in lines) > 2_000_000:
         raise PolicyError('Framework text exceeds supported limits.')
     cover = ' '.join(' '.join(lines[:10]).split())
     if not cover.startswith('Western Australian Government Cyber Security Policy 2024'):
-        raise PolicyError('This parser requires the 2024 WA Government Cyber Security Policy.')
+        raise PolicyError('This parser supports the 2024 and 2026 WA Government Cyber Security Policy editions.')
     numbers, toc_end = parse_contents(lines)
     sections = split_sections(lines, numbers, toc_end)
     records = build_records(sections)
@@ -192,3 +195,72 @@ def parse(path):
     if not wanted or wanted != {s['number'] for s in sections} or not records:
         raise PolicyError('Policy headings could not be fully extracted; keep the existing corpus and review this PDF manually.')
     return dict(title='Western Australian Government Cyber Security Policy 2024', records=records)
+
+
+def parse_2026(pdf):
+    # The 2026 publication uses 12-point body text, 13/14-point subheadings,
+    # and 8/9-point footers/footnotes. Keep body indentation to distinguish
+    # lettered requirements from nested Roman-numeral lists.
+    lines = []
+    for page in pdf.pages:
+        body = page.filter(lambda obj: obj.get('object_type') != 'char' or obj.get('size', 0) >= 11)
+        lines.extend(line.rstrip() for line in (body.extract_text(layout=True) or '').splitlines() if line.strip())
+    if sum(map(len, lines)) > 2_000_000:
+        raise PolicyError('Framework text exceeds supported limits.')
+    numbers, start = parse_contents(lines)
+    wanted = {n for n in numbers if '.' in n}
+    headings = []
+    for i in range(start, len(lines)):
+        match = _TOC_ENTRY.match(lines[i].strip())
+        if match:
+            number, title = match.groups()
+            expected = numbers.get(number)
+            child = number.count('.') == 2 and number.rsplit('.', 1)[0] in wanted
+            title_matches = (expected and title.casefold().startswith(expected.split()[0].casefold()))
+            if '.' not in number:
+                title_matches = expected and ' '.join(title.split()).casefold() == expected.casefold()
+            if title_matches or child:
+                headings.append((i, number, expected or title))
+        if headings and ' '.join(lines[i].split()) == 'Annual Implementation Reporting':
+            end = i
+            break
+    else:
+        raise PolicyError('The 2026 policy end marker could not be located.')
+    if wanted != {n for _, n, _ in headings if n.count('.') == 1}:
+        raise PolicyError('The 2026 policy headings could not be fully extracted.')
+    if len(headings) != len({n for _, n, _ in headings}):
+        raise PolicyError('Duplicate policy headings were found.')
+    sections = {}
+    for j, (position, number, title) in enumerate(headings):
+        stop = headings[j+1][0] if j+1 < len(headings) else end
+        sections[number] = (title, lines[position+1:stop])
+    records = []
+    for number, (title, body) in sections.items():
+        if '.' not in number:
+            continue
+        candidates = [len(line)-len(line.lstrip()) for line in body if _LETTERED.match(line)]
+        indent = min(candidates) if candidates else None
+        lead, items = [], []
+        for line in body:
+            match = _LETTERED.match(line)
+            if match and len(line)-len(line.lstrip()) == indent:
+                items.append((match.group(1), [match.group(2)]))
+            elif items:
+                items[-1][1].append(line.strip())
+            else:
+                lead.append(line.strip())
+        lead_text = ' '.join(lead)
+        ancestors = []
+        parts = number.split('.')
+        for length in range(1, len(parts)):
+            parent = sections.get('.'.join(parts[:length]))
+            if parent:
+                ancestors.append(' '.join(line.strip() for line in parent[1]))
+        context = '\n'.join(ancestors + ([lead_text] if items else []))
+        for suffix, text in ([(letter, ' '.join(parts)) for letter, parts in items] if items else [('', lead_text)]):
+            if text:
+                records.append(dict(identifier=number+suffix, section_number=number, section_title=title,
+                                    lead_in=context, text=text))
+    if not records or len(records) != len({r['identifier'] for r in records}):
+        raise PolicyError('The 2026 policy contains duplicate or missing requirements.')
+    return dict(title='Western Australian Government Cyber Security Policy 2026', records=records)

@@ -734,6 +734,14 @@
         },
         "alignment": {
           "$ref": "#/$defs/alignment"
+        },
+        "ismMaturityLevels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 2000000
+          },
+          "maxItems": 20000
         }
       },
       "required": [
@@ -919,6 +927,13 @@
           "type": [
             "string",
             "null"
+          ]
+        },
+        "profile": {
+          "enum": [
+            "ML1",
+            "ML2",
+            "ML3"
           ]
         }
       },
