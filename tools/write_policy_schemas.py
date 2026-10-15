@@ -47,7 +47,15 @@ def generate():
     boolean={'type':'boolean'}
     nullable={'type':['string','null']}
     defs={}
-    defs['locator']=obj({k:({'type':['integer','null']} if k in ('start','end','line','paragraph','table','row','cell','page') else nullable) for k in ('kind','start','end','line','heading','paragraph','table','row','cell','page','boundingBox','section','reference')},required=[])
+    defs['locator']=obj({k:({'type':['integer','null']} if k in ('start','end','line','paragraph','table','row','cell','page') else nullable) for k in ('kind','start','end','line','heading','paragraph','table','row','cell','page','boundingBox','section','reference','uri','sourceHash','sourceFile','jsonPointer')},required=[])
+    reference_properties = {key:string for key in ('frameworkId','reference','targetId','targetEdition','sourceUri','sourceHash','sourceEdition','kind','basis','relationship','sourceGroup','expectedTargetHash','status','resolvedTargetEdition','targetSourceHash')}
+    reference_properties['sourcePage'] = {'type':'integer','minimum':1}
+    defs['frameworkReference'] = obj(reference_properties, required=['frameworkId','reference','targetId','targetEdition','sourceUri','sourceHash','sourceEdition','kind','basis','relationship'])
+    defs['essentials'] = obj(dict(chapter=string,principleReference=string,principleText=string,
+        domains=strings,phases={'type':'object','additionalProperties':array({'type':'integer','enum':[1,2,3]},3)},
+        referenceKind=string,sharedResponsibility=obj(dict(paas=nullable,saas=nullable)),
+        techniques=array(obj(dict(label=string,url=string)),100),evidenceActionText=string,evidencePrincipleText=string),
+        required=['chapter','principleReference','principleText','domains','phases','referenceKind'])
     defs['rule']={'oneOf':[obj({'all':dict(type='array',items=ref('rule'),minItems=1,maxItems=16)}),
                            obj({'any':dict(type='array',items=ref('rule'),minItems=1,maxItems=16)}),
                            obj({'phrases':dict(type='array',items={'type':'string','minLength':1,'maxLength':150},minItems=1,maxItems=32)}),
@@ -85,18 +93,29 @@ def generate():
     defs['document']=obj(document,required=[k for k in document if k not in ('effectiveDate','extractedPassageCount','archiveMember','archiveHash')])
     defs['framework']=obj(dict(id=string,title=string,edition=string,sourceFile=nullable,extractHash=string,sourceUri=nullable,licence=string,sourceHash=nullable),required=['id','title','edition','extractHash'])
     defs['framework']['properties']['profile']={'enum':['ML1','ML2','ML3']}
+    resource_properties = {key:string for key in ('id','filename','title','role','uri','pageUri','edition','sha256','licence')}
+    resource_properties.update(pages={'type':'integer','minimum':0},principleReferences=strings)
+    resource_properties.update(sheetNames=strings,sheetCount={'type':'integer','minimum':0},formulaCount={'type':'integer','minimum':0})
+    defs['framework']['properties']['resources'] = array(obj(resource_properties,required=['id','title','role','uri','sha256']),30)
+    defs['framework']['properties']['notices'] = strings
+    principle_properties = {key:string for key in ('id','title','text','sourceUri','sourceHash','sourceEdition','oscalId','jsonPointer','evidenceText')}
+    defs['framework']['properties']['principles'] = array(obj(principle_properties,required=['id','title','text']),100)
     defs['versions']=obj(dict(engine=string,corpus=string,frameworks=array(ref('framework'),100),rulesHash=string,normaliser=string,retrieval=string,parser=string))
     defs['versions']['properties']['alignment']=string
     defs['scope']=obj(dict(description=string,mode={'enum':['SingleDocument','PolicySet']},selectedDocumentIds=strings,
                           duplicates=array(obj(dict(path=string,documentId=string)),250),retention={'enum':['evidence','extracted']}))
     defs['scope']['properties']['skippedInputs']=strings
     defs['mapping']=obj(dict(source=string,target=string,relationship=string,relation={'const':'MappedOnly'},provenance=string,reviewStatus=string))
+    defs['mapping']['properties']['sourceReference'] = ref('frameworkReference')
     defs['review']=obj(dict(id=string,runId=string,requirementId=string,finding={'enum':['Covered','PartiallyCovered','NotCovered','NotAssessed','NotApplicable']},
                            reason=string,reviewer=string,identitySource=string,timestamp=string,confirmedObligations=strings,selectedEvidence=strings,comment=string,
                            manualEvidence=array(obj(dict(id=string,documentId=string,documentHash=string,passageId=string,obligationId=string,excerpt=string,locator=ref('locator'),relation={'const':'Direct'},provenance=string)))))
     defs['reviewedFinding']=obj(dict(**defs['finding']['properties'],review=ref('review')),required=defs['finding']['required'])
     defs['alignmentFinding']=obj(dict(id=string,frameworkId=string,officialReference=string,heading=string,
         authoritativeText=string,context=string,sourceLocator=ref('locator'),alignment=ref('alignment')))
+    for name in ('requirement','finding','reviewedFinding','alignmentFinding'):
+        defs[name]['properties']['essentials'] = ref('essentials')
+        defs[name]['properties']['frameworkReferences'] = array(ref('frameworkReference'),2000)
     run=obj(dict(schemaVersion={'const':'1.0'},runId=string,createdAt=string,name=string,organisation=string,
                  scope=ref('scope'),versions=ref('versions'),documents=array(ref('document'),250),requirements=array(ref('finding')),
                  mappings=array(ref('mapping'),100000),limitations=strings,canonicalHash=string))

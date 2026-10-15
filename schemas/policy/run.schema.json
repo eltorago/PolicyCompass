@@ -158,9 +158,220 @@
             "string",
             "null"
           ]
+        },
+        "uri": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sourceHash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sourceFile": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "jsonPointer": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [],
+      "additionalProperties": false
+    },
+    "frameworkReference": {
+      "type": "object",
+      "properties": {
+        "frameworkId": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "reference": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "targetId": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "targetEdition": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "sourceUri": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "sourceHash": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "sourceEdition": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "kind": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "basis": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "relationship": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "sourceGroup": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "expectedTargetHash": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "resolvedTargetEdition": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "targetSourceHash": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "sourcePage": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "frameworkId",
+        "reference",
+        "targetId",
+        "targetEdition",
+        "sourceUri",
+        "sourceHash",
+        "sourceEdition",
+        "kind",
+        "basis",
+        "relationship"
+      ],
+      "additionalProperties": false
+    },
+    "essentials": {
+      "type": "object",
+      "properties": {
+        "chapter": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "principleReference": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "principleText": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "domains": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 2000000
+          },
+          "maxItems": 20000
+        },
+        "phases": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "enum": [
+                1,
+                2,
+                3
+              ]
+            },
+            "maxItems": 3
+          }
+        },
+        "referenceKind": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "sharedResponsibility": {
+          "type": "object",
+          "properties": {
+            "paas": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "saas": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "paas",
+            "saas"
+          ],
+          "additionalProperties": false
+        },
+        "techniques": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "url": {
+                "type": "string",
+                "maxLength": 2000000
+              }
+            },
+            "required": [
+              "label",
+              "url"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
+        },
+        "evidenceActionText": {
+          "type": "string",
+          "maxLength": 2000000
+        },
+        "evidencePrincipleText": {
+          "type": "string",
+          "maxLength": 2000000
+        }
+      },
+      "required": [
+        "chapter",
+        "principleReference",
+        "principleText",
+        "domains",
+        "phases",
+        "referenceKind"
+      ],
       "additionalProperties": false
     },
     "rule": {
@@ -742,6 +953,16 @@
             "maxLength": 2000000
           },
           "maxItems": 20000
+        },
+        "essentials": {
+          "$ref": "#/$defs/essentials"
+        },
+        "frameworkReferences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/frameworkReference"
+          },
+          "maxItems": 2000
         }
       },
       "required": [
@@ -935,6 +1156,146 @@
             "ML2",
             "ML3"
           ]
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "filename": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "role": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "uri": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "pageUri": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "edition": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "sha256": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "licence": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "pages": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "principleReferences": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 2000000
+                },
+                "maxItems": 20000
+              },
+              "sheetNames": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 2000000
+                },
+                "maxItems": 20000
+              },
+              "sheetCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "formulaCount": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "role",
+              "uri",
+              "sha256"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 30
+        },
+        "notices": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 2000000
+          },
+          "maxItems": 20000
+        },
+        "principles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "sourceUri": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "sourceHash": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "sourceEdition": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "oscalId": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "jsonPointer": {
+                "type": "string",
+                "maxLength": 2000000
+              },
+              "evidenceText": {
+                "type": "string",
+                "maxLength": 2000000
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "text"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
         }
       },
       "required": [
@@ -1087,6 +1448,9 @@
         "reviewStatus": {
           "type": "string",
           "maxLength": 2000000
+        },
+        "sourceReference": {
+          "$ref": "#/$defs/frameworkReference"
         }
       },
       "required": [

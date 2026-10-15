@@ -10,7 +10,7 @@ from .framework_import import controls_for_comparison, control_rows
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = Path(__file__).resolve().parent / "assets"
-CORPUS_VERSION = "2026.10.12-pilot.4"
+CORPUS_VERSION = "2026.10.15-essentials.1"
 REVIEW_FRAMEWORKS = NAMES
 MANUAL_FRAMEWORKS = tuple(key for key in NAMES if key != 'wa-csp')
 
@@ -63,7 +63,23 @@ def _wa_requirements(edition=None):
 def _library(keys=MANUAL_FRAMEWORKS):
     from framework_core.build import build
     library_root = Path(setting('LIBRARY', str(ROOT)))
+    keys = [key for key in keys if not key.startswith('essentials-')]
     return build(False, source_root=library_root/'sources/files', corpus_root=library_root/'data/corpus', framework_keys=keys)[0]
+
+
+def _prepared_principles():
+    from framework_core.sources import local_path
+    from .documents import extract_worker
+    from .frameworks import FILENAMES, PAGES
+    source_root = Path(setting('LIBRARY', str(ROOT))) / 'sources/files'
+    path = local_path(source_root, FILENAMES['asd-principles'])
+    if not path.is_file():
+        raise PolicyError('ASD cyber security principles are unavailable locally. Download them in Framework updates, '
+                          'or prepare ISM_catalog.json in the local library sources/files folder.', 5)
+    packet = extract_worker(path, framework='asd-principles')
+    packet['framework']['sourceUri'] = PAGES['asd-principles']
+    packet['framework']['extractHash'] = fingerprint(packet['requirements'])
+    return packet
 
 
 def _controls(existing, key):
@@ -75,8 +91,10 @@ def _imported_rows(packet):
     rows = []
     for source in packet['requirements']:
         row = {key:source[key] for key in ('id','frameworkId','officialReference','heading','parentId','authoritativeText','context','sourceLocator')}
-        if 'ismMaturityLevels' in source:
-            row['ismMaturityLevels'] = source['ismMaturityLevels']
+        for key in ('ismMaturityLevels', 'essentials', 'frameworkReferences'):
+            if key in source:
+                from copy import deepcopy
+                row[key] = deepcopy(source[key])
         trusted_training = (row['id'] == 'wa-csp:3.2a' and packet['framework']['sourceHash'] == pilot.get('reviewedSourceHash')
                             and fingerprint([row['authoritativeText'],row['context']]) == pilot.get('trainingRequirementHash'))
         atoms = training_rules() if trusted_training else [dict(id='POLICYCOMPASS-' + row['id'],interpretation=row['authoritativeText'],rule=None)]
@@ -125,8 +143,18 @@ def load(framework="wa-csp", edition=None, corpus_version=None, also=(), ism_mat
         frameworks.append(metadata)
         requirements.extend(wa_rows)
     manual = [key for key in selected if key in MANUAL_FRAMEWORKS and key not in imported]
+    if any(key.startswith('essentials-') for key in manual):
+        raise PolicyError('Download the selected Essentials chapter in Framework updates before comparing policies.', 5)
+    if 'asd-principles' in manual:
+        packet = _prepared_principles()
+        if framework == 'asd-principles' and edition and edition != packet['framework']['edition']:
+            raise PolicyError('Requested framework edition is not installed. Use python -m policycompass frameworks.', 5)
+        frameworks.append(packet['framework'])
+        requirements.extend(_imported_rows(packet))
+        mappings.extend(packet['mappings'])
+        manual.remove('asd-principles')
     if manual:
-        existing = _library(selected)
+        existing = _library([key for key in selected if not key.startswith('essentials-')])
         for key in manual:
             fw = existing.frameworks[key]
             controls = _controls(existing, key)
@@ -155,20 +183,37 @@ def load(framework="wa-csp", edition=None, corpus_version=None, also=(), ism_mat
 
 def select_ism_maturity(value, level):
     if level is None:
-        return value
+        return _resolve_references(value)
     if level not in ('ML1', 'ML2', 'ML3') or 'ism' not in {f['id'] for f in value['frameworks']}:
         raise PolicyError('Choose ISM and an Essential Eight maturity level: ML1, ML2 or ML3.', 2)
     selected = [r for r in value['requirements'] if r['frameworkId'] != 'ism' or level in r.get('ismMaturityLevels', [])]
     if not any(r['frameworkId'] == 'ism' for r in selected):
         raise PolicyError('This ISM copy has no Essential Eight maturity tags. Download the current ISM before filtering.', 5)
-    value['requirements'] = selected
     ids = {r['id'] for r in selected}
+    excluded = {r['id'] for r in value['requirements']} - ids
+    value['requirements'] = selected
     value['mappings'] = [m for m in value['mappings'] if m['source'] in ids and m['target'] in ids]
     value['rulesHash'] = fingerprint([r['obligations'] for r in selected])
     for framework in value['frameworks']:
         if framework['id'] == 'ism':
             framework['profile'] = level
             framework['title'] += ' — Essential Eight ' + level
+    return _resolve_references(value, excluded)
+
+
+def _resolve_references(value, excluded=()):
+    """Resolve against the final comparison scope, including packaged selections."""
+    from .references import resolve
+    for row in value['requirements']:
+        for reference in row.get('frameworkReferences', []):
+            reference.pop('resolvedTargetEdition', None)
+            reference.pop('targetSourceHash', None)
+    value['mappings'] = [m for m in value['mappings'] if 'sourceReference' not in m]
+    value['mappings'].extend(resolve(value['requirements'], value['frameworks']))
+    for row in value['requirements']:
+        for reference in row.get('frameworkReferences', []):
+            if reference['targetId'] in excluded:
+                reference['status'] = 'Reference outside selected ISM profile'
     return value
 
 

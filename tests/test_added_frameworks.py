@@ -104,7 +104,8 @@ def wa_pdf(path, year=2026):
 
 class AddedFrameworkTests(unittest.TestCase):
     def test_choices_and_default_batch_match_requested_scope(self):
-        self.assertEqual(set(NAMES), {'wa-csp','ism','aescsf','asd-strategies','csf','pspf','nist-800-53'})
+        self.assertEqual(set(NAMES), {'wa-csp','ism','aescsf','asd-strategies','csf','pspf','nist-800-53',
+                                     'asd-principles','essentials-it','essentials-cloud','essentials-ot'})
         self.assertEqual(set(AUTOMATIC), set(NAMES)-{'aescsf'})
         for key in NAMES:
             self.assertEqual(parser().parse_args(['corpus','update','--framework',key]).update_frameworks,[key])

@@ -32,6 +32,9 @@ def model(state, full=True, framework_ids=None):
         rows.append(dict(id=row['id'], frameworkId=row['frameworkId'], officialReference=row['officialReference'],
                          heading=row['heading'], authoritativeText=row['authoritativeText'], context=row['context'],
                          sourceLocator=row['sourceLocator'], alignment=result))
+        for key in ('essentials', 'frameworkReferences'):
+            if key in row:
+                rows[-1][key] = deepcopy(row[key])
     return dict(schemaVersion='1.0', reportType='FrameworkAlignment', name=run['name'], organisation=run.get('organisation', ''),
         scope=run['scope'], runId=run['runId'], analysisDate=run['createdAt'], versions=run['versions'],
         method=run['versions'].get('alignment', alignment.VERSION), description=alignment.DESCRIPTION,
@@ -62,7 +65,7 @@ def render(state, format='json', full=True, framework_ids=None):
     if format == 'csv':
         stream = io.StringIO(newline='')
         writer = csv.writer(stream, lineterminator='\n')
-        writer.writerow(['Comparison', 'Framework', 'Edition', 'Profile', 'Requirement', 'Framework text', 'Context', 'Status', 'Matching passages', 'Source locations', 'Match count', 'Search complete', 'Run', 'Method'])
+        writer.writerow(['Comparison', 'Framework', 'Edition', 'Profile', 'Requirement', 'Framework text', 'Context', 'Status', 'Matching passages', 'Source locations', 'Match count', 'Search complete', 'Run', 'Method', 'Essentials scope', 'Framework references'])
         editions = {f['id']:f['edition'] for f in data['versions']['frameworks']}
         profiles = {f['id']:f.get('profile', '') for f in data['versions']['frameworks']}
         for row in data['requirements']:
@@ -70,7 +73,8 @@ def render(state, format='json', full=True, framework_ids=None):
             writer.writerow([safe_cell(value) for value in (data['name'], row['frameworkId'], editions[row['frameworkId']], profiles[row['frameworkId']],
                 row['id'], row['authoritativeText'], row['context'], result['status'],
                 '\n\n'.join(m['excerpt'] for m in result['matches']), '\n'.join(location(m) for m in result['matches']),
-                result['matchCount'], result['searchComplete'], data['runId'], data['method'])])
+                result['matchCount'], result['searchComplete'], data['runId'], data['method'],
+                essentials_text(row), json.dumps(row.get('frameworkReferences', []), ensure_ascii=False))])
         return stream.getvalue()
     if format == 'markdown':
         def escape(value):
@@ -84,11 +88,45 @@ def render(state, format='json', full=True, framework_ids=None):
                 if row['frameworkId'] != framework['id']:
                     continue
                 lines += ['### ' + escape(row['id'] + ' — ' + row['alignment']['status']), escape(row['context']), escape(row['authoritativeText'])]
+                if row.get('essentials'):
+                    lines.append(escape(essentials_text(row)))
+                for reference in row.get('frameworkReferences', []):
+                    lines.append(escape(reference_text(reference)))
                 for match in row['alignment']['matches']:
                     lines += [escape(location(match)), escape(match['excerpt']), *(escape(c) for c in match['cautions'])]
         lines += ['Method: ' + escape(data['method']), 'Run: ' + escape(data['runId'])]
         return '\n\n'.join(lines)
     raise PolicyError('Unsupported report format.', 2)
+
+
+def essentials_text(row):
+    value = row.get('essentials')
+    if not value:
+        return ''
+    lines = [value['chapter'] + ' — ' + value['principleReference'], value['principleText'],
+             'Domains: ' + ', '.join(value['domains']),
+             'Priority phases (sequence, not maturity): ' + '; '.join(
+                 domain + ': ' + ', '.join(map(str, phases)) for domain, phases in value['phases'].items()),
+             'Reference: ' + value['referenceKind']]
+    if value.get('sharedResponsibility'):
+        lines.append('Indicative cloud responsibility: ' + '; '.join(
+            model + ': ' + (marker or 'Not stated by publisher') for model, marker in value['sharedResponsibility'].items()))
+        lines.append('C: customer operates; S: provider supplies, customer configures and operates; P: provider operates, customer verifies assurance.')
+    if value.get('evidenceActionText') and value['evidenceActionText'] != row['authoritativeText']:
+        lines.append('Evidence guide wording: ' + value['evidenceActionText'])
+    if value.get('evidencePrincipleText') and value['evidencePrincipleText'] != value['principleText']:
+        lines.append('Evidence guide principle wording: ' + value['evidencePrincipleText'])
+    if value.get('techniques'):
+        lines.append('ATT&CK techniques referenced by ASD (threat context, not requirements): ' + '; '.join(
+            technique['label'] + ' — ' + technique['url'] for technique in value['techniques']))
+    return '\n'.join(lines)
+
+
+def reference_text(reference):
+    return (reference['kind'] + ' — ' + reference['frameworkId'] + ' ' + reference['reference']
+            + ' (' + reference['targetEdition'] + '): ' + reference['basis']
+            + '. ' + reference.get('status', 'Not resolved in this view')
+            + '. Source: ' + reference['sourceUri'])
 
 
 def render_html(data):
@@ -121,6 +159,11 @@ def render_html(data):
             for row in rows:
                 result = row['alignment']
                 out.append('<details><summary>' + esc(row['officialReference'] + ' — ' + row['heading']) + '</summary><p>' + esc(row['context']) + '</p><p>' + esc(row['authoritativeText']) + '</p>')
+                if row.get('essentials'):
+                    out.append('<p>' + esc(essentials_text(row)) + '</p>')
+                if row.get('frameworkReferences'):
+                    out.append('<details><summary>Source references</summary>' + ''.join(
+                        '<p>' + esc(reference_text(reference)) + '</p>' for reference in row['frameworkReferences']) + '</details>')
                 for match in result['matches']:
                     out.append('<p><strong>' + esc(location(match)) + '</strong></p><blockquote>' + esc(match['excerpt']) + '</blockquote>' +
                         ''.join('<p>' + esc(c) + '</p>' for c in match['cautions']))

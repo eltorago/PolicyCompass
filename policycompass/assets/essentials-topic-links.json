@@ -1,0 +1,683 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "frameworkId": "asd-principles",
+    "edition": "2026.09.4",
+    "sourceHash": "237ea09362b8449ed5c5ee85de4725a0468ee73d13af7cf61c26d4e6ac47f12d",
+    "sourceUri": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/ism-oscal-releases"
+  },
+  "targets": {
+    "wa-csp": {
+      "edition": "Western Australian Government Cyber Security Policy 2026",
+      "sourceHash": "4be54cb6ead0f614ff72f90b65690e5b3ad7fcf891c1c31627922a9d286d1ac9"
+    },
+    "pspf": {
+      "edition": "PSPF Release 2026 (July 2026) - List of Requirements",
+      "sourceHash": "be1eb1cece9d8096b07740c8a9ef8cd750b29c43ae9954f07cedf09a14542945"
+    },
+    "asd-strategies": {
+      "edition": "February 2017",
+      "sourceHash": "7bffb6262906cb13fd28a59857b0c8c68322116eeef7ab5fff215c6c2dd1f5b4"
+    }
+  },
+  "links": [
+    {
+      "principleId": "asd-principles:gov-1",
+      "targetId": "wa-csp:1.1a",
+      "reference": "1.1a",
+      "rationale": "Both assign organisational cyber security risk accountability to the senior accountable authority, including when IT is outsourced.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-3",
+      "targetId": "wa-csp:1.4c",
+      "reference": "1.4c",
+      "rationale": "The WA governance requirement explicitly covers strategic and operational cyber risk assessment and its impact on operations, supporting the principle’s organisational risk oversight topic.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-4",
+      "targetId": "wa-csp:1.3",
+      "reference": "1.3",
+      "rationale": "Both require sufficient personnel and capability to sustain cyber security implementation.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-7",
+      "targetId": "wa-csp:1.4j",
+      "reference": "1.4j",
+      "rationale": "Governance oversight of resolving audit findings supports the principle’s improvement through assurance activities.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-8",
+      "targetId": "wa-csp:3.14.3e",
+      "reference": "3.14.3e",
+      "rationale": "Human oversight and governance of AI security measures overlaps the principle’s accountable and human-supervised AI governance outcome.",
+      "limitation": "The selected WA clause does not by itself name board-level accountability or cover every AI governance outcome."
+    },
+    {
+      "principleId": "asd-principles:gov-9",
+      "targetId": "wa-csp:3.4h",
+      "reference": "3.4h",
+      "rationale": "A supplier/entity shared responsibility model overlaps the principle’s allocation of shared security responsibilities.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-11",
+      "targetId": "wa-csp:3.4a",
+      "reference": "3.4a",
+      "rationale": "Supplier security maturity and assessment assurance are explicit procurement considerations, matching the principle’s supplier trust and assurance topic.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-14",
+      "targetId": "wa-csp:3.15b",
+      "reference": "3.15b",
+      "rationale": "Documenting legacy OT and planning its transition overlaps the principle’s managed replacement of legacy systems.",
+      "limitation": "The selected WA clauses cover legacy transition or compensating controls, not the full monitoring and residual-risk assurance outcome."
+    },
+    {
+      "principleId": "asd-principles:gov-14",
+      "targetId": "wa-csp:3.15e",
+      "reference": "3.15e",
+      "rationale": "Compensating controls for OT patching limitations overlap the principle’s management of systems that cannot meet security requirements.",
+      "limitation": "The selected WA clauses cover legacy transition or compensating controls, not the full monitoring and residual-risk assurance outcome."
+    },
+    {
+      "principleId": "asd-principles:ide-1",
+      "targetId": "wa-csp:2.1a",
+      "reference": "2.1a",
+      "rationale": "Both require a maintained enterprise view of tangible and intangible assets, supported by automated discovery where possible.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:ide-2",
+      "targetId": "wa-csp:3.15j",
+      "reference": "3.15j",
+      "rationale": "An inventory identifying critical OT assets overlaps documenting which assets are critical to business delivery.",
+      "limitation": "Identifying critical assets does not establish a complete documented business-criticality rating method."
+    },
+    {
+      "principleId": "asd-principles:ide-4",
+      "targetId": "wa-csp:2.1b",
+      "reference": "2.1b",
+      "rationale": "Understanding vulnerabilities and risks in IT, OT and IoT overlaps identifying system and organisational security risks.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:ide-5",
+      "targetId": "wa-csp:2.1a",
+      "reference": "2.1a",
+      "rationale": "The WA asset view explicitly identifies critical interdependencies, matching the principle’s system-dependency identification topic.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:ide-6",
+      "targetId": "wa-csp:3.1.8b",
+      "reference": "3.1.8b",
+      "rationale": "Documented recovery point and recovery time objectives provide concrete resilience requirements for backup and recovery.",
+      "limitation": "Recovery objectives are one category of resilience requirement, not the complete system resilience specification."
+    },
+    {
+      "principleId": "asd-principles:pro-1",
+      "targetId": "wa-csp:3.13b",
+      "reference": "3.13b",
+      "rationale": "Consistent security controls across development, test and production environments overlap securing systems throughout their lifecycle.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-1",
+      "targetId": "wa-csp:3.13d",
+      "reference": "3.13d",
+      "rationale": "Integrating security testing into development and deployment overlaps the principle’s secure development and testing stages.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-4",
+      "targetId": "wa-csp:3.1.7a",
+      "reference": "3.1.7a",
+      "rationale": "Hardening user software and removing unsupported components overlap reducing insecure configuration and unnecessary attack surface.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-5",
+      "targetId": "wa-csp:3.1.4d",
+      "reference": "3.1.4d",
+      "rationale": "Dedicated secure administrative workstations or jump servers directly support secure system administration.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-5",
+      "targetId": "wa-csp:3.1.4f",
+      "reference": "3.1.4f",
+      "rationale": "Central logging and monitoring of administrative actions directly support auditable system administration.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-6",
+      "targetId": "wa-csp:3.7a",
+      "reference": "3.7a",
+      "rationale": "Automated vulnerability scanning overlaps repeatable identification of system vulnerabilities.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-6",
+      "targetId": "wa-csp:3.7d",
+      "reference": "3.7d",
+      "rationale": "Remediation of identified vulnerabilities overlaps the principle’s vulnerability treatment outcome.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-7",
+      "targetId": "wa-csp:3.1.5a",
+      "reference": "3.1.5a",
+      "rationale": "Application allowlisting overlaps permitting only authorised software execution.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-8",
+      "targetId": "wa-csp:3.11c",
+      "reference": "3.11c",
+      "rationale": "Encrypting internal and external traffic, within the section’s at-rest and transit encryption requirements, overlaps cryptographic data protection.",
+      "limitation": "Topic overlap does not establish identical cryptographic algorithms, authentication requirements or ASD approval."
+    },
+    {
+      "principleId": "asd-principles:pro-9",
+      "targetId": "wa-csp:2.1f",
+      "reference": "2.1f",
+      "rationale": "Controls detecting and preventing unauthorised data exfiltration overlap inspection and control of information flows.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-10",
+      "targetId": "wa-csp:3.1.8a",
+      "reference": "3.1.8a",
+      "rationale": "Scheduled backups aligned with business continuity needs overlap regular system and data backup.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-10",
+      "targetId": "wa-csp:3.1.8e",
+      "reference": "3.1.8e",
+      "rationale": "Recovery drills that demonstrate viable backups overlap proving restoration capability.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-12",
+      "targetId": "wa-csp:3.8b",
+      "reference": "3.8b",
+      "rationale": "The target explicitly requires least privilege when granting access.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-13",
+      "targetId": "wa-csp:3.8a",
+      "reference": "3.8a",
+      "rationale": "Managing the user lifecycle, within the section’s account management and monitoring requirements, overlaps identity and access management.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-13",
+      "targetId": "wa-csp:3.11a",
+      "reference": "3.11a",
+      "rationale": "Protecting encryption keys and rotating secrets overlaps secure credential management.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-14",
+      "targetId": "wa-csp:3.2a",
+      "reference": "3.2a",
+      "rationale": "Annual cyber security awareness training overlaps the principle’s ongoing workforce awareness requirement.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-14",
+      "targetId": "wa-csp:3.2b",
+      "reference": "3.2b",
+      "rationale": "Additional training tailored to specialist and sensitive roles overlaps role-specific cyber security awareness.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-15",
+      "targetId": "wa-csp:3.9f",
+      "reference": "3.9f",
+      "rationale": "Electronic access controls, within the physical access protection section, overlap restricting physical access to systems.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-15",
+      "targetId": "wa-csp:3.9g",
+      "reference": "3.9g",
+      "rationale": "Surveillance, alarms and CCTV overlap monitoring physical access for unusual activity.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-16",
+      "targetId": "wa-csp:3.4b",
+      "reference": "3.4b",
+      "rationale": "Procurement assessment of suppliers’ ability to meet cyber security and incident-reporting obligations overlaps coordinated supply-chain security.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-18",
+      "targetId": "wa-csp:3.1.11a",
+      "reference": "3.1.11a",
+      "rationale": "Network segmentation and micro-segmentation directly overlap separating systems into network zones.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-18",
+      "targetId": "wa-csp:3.1.11b",
+      "reference": "3.1.11b",
+      "rationale": "Isolation mechanisms restricting lateral movement overlap controlled communication between segregated environments.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-19",
+      "targetId": "wa-csp:3.15c",
+      "reference": "3.15c",
+      "rationale": "Segregating critical OT systems from other networks directly overlaps OT isolation.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:det-1",
+      "targetId": "wa-csp:4.1a",
+      "reference": "4.1a",
+      "rationale": "A SIEM with defined log sources overlaps centralised security event logging.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:det-1",
+      "targetId": "wa-csp:4.1d",
+      "reference": "4.1d",
+      "rationale": "Protecting log integrity overlaps safeguarding event logs against unauthorised change.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:det-2",
+      "targetId": "wa-csp:4.2b",
+      "reference": "4.2b",
+      "rationale": "Identifying attacks and behaviour changes as adverse events overlaps detecting anomalous cyber security events.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:det-3",
+      "targetId": "wa-csp:4.2c",
+      "reference": "4.2c",
+      "rationale": "Triaging and categorising events before invoking incident playbooks overlaps identifying cyber security incidents.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:res-1",
+      "targetId": "wa-csp:6.1a",
+      "reference": "6.1a",
+      "rationale": "Maintaining disaster recovery plans for critical systems overlaps incident and recovery planning for continued operations.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:res-2",
+      "targetId": "wa-csp:5.2c",
+      "reference": "5.2c",
+      "rationale": "Defined reporting of suspected and confirmed incidents to DGov and ASD overlaps timely external incident reporting.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:res-3",
+      "targetId": "wa-csp:5.2b",
+      "reference": "5.2b",
+      "rationale": "Timed incident triage and playbook activation overlap timely incident response.",
+      "limitation": "The linked statements address response or recovery processes but do not independently demonstrate containment, eradication and recovery effectiveness."
+    },
+    {
+      "principleId": "asd-principles:res-3",
+      "targetId": "wa-csp:6.1c",
+      "reference": "6.1c",
+      "rationale": "Recovery capability aligned with continuity and incident-response timeframes overlaps timely recovery from incidents.",
+      "limitation": "The linked statements address response or recovery processes but do not independently demonstrate containment, eradication and recovery effectiveness."
+    },
+    {
+      "principleId": "asd-principles:res-4",
+      "targetId": "wa-csp:6.2",
+      "reference": "6.2",
+      "rationale": "Post-incident review findings informing recovery plans and future work overlap capturing and acting on incident lessons.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:res-5",
+      "targetId": "wa-csp:5.2c",
+      "reference": "5.2c",
+      "rationale": "Embedding named external reporting parties and timeframes in the response plan overlaps external incident coordination.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-1",
+      "targetId": "pspf:req 7",
+      "reference": "Req 7",
+      "rationale": "The Accountable Authority’s responsibility for entity security risks overlaps executive accountability for cyber security within the broader protective security scope.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-3",
+      "targetId": "pspf:req 213",
+      "reference": "Req 213",
+      "rationale": "Regular cyber risk and uplift reporting to the Audit Committee overlaps ongoing governance assurance over cyber risk management.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-4",
+      "targetId": "pspf:req 14",
+      "reference": "Req 14",
+      "rationale": "Appropriately skilled and resourced security practitioners overlap maintaining suitable cyber security personnel and resources.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-7",
+      "targetId": "pspf:req 22",
+      "reference": "Req 22",
+      "rationale": "Monitoring security-plan effectiveness and maintaining a continuous improvement cycle overlap assurance-led cyber security improvement.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-9",
+      "targetId": "pspf:req 40",
+      "reference": "Req 40",
+      "rationale": "Contractual security terms for providers and subcontractors overlap documenting security responsibilities shared with suppliers.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-11",
+      "targetId": "pspf:req 44",
+      "reference": "Req 44",
+      "rationale": "Monitoring contracted security controls throughout the contract overlaps continuing supplier cyber security assurance.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:gov-11",
+      "targetId": "pspf:req 109",
+      "reference": "Req 109",
+      "rationale": "A recent provider IRAP assessment overlaps independently checking cloud supplier security practices.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:ide-1",
+      "targetId": "pspf:req 211",
+      "reference": "Req 211",
+      "rationale": "A technology asset stocktake provides maintained visibility of internet-facing systems, a bounded subset of the principle’s asset identification scope.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:ide-4",
+      "targetId": "pspf:req 211",
+      "reference": "Req 211",
+      "rationale": "The required technology security risk management plan for internet-facing systems overlaps identifying and managing system security risks.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-1",
+      "targetId": "pspf:req 97",
+      "reference": "Req 97",
+      "rationale": "Secure technology disposal overlaps the decommissioning stage of a secure system lifecycle.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-4",
+      "targetId": "pspf:req 105",
+      "reference": "Req 105",
+      "rationale": "The user application hardening obligation overlaps secure configuration and attack-surface reduction; its E8 maturity requirement remains distinct.",
+      "limitation": "The source requires E8 Maturity Level Two; this link makes no maturity-to-effectiveness conversion and does not supersede that obligation."
+    },
+    {
+      "principleId": "asd-principles:pro-6",
+      "targetId": "pspf:req 115",
+      "reference": "Req 115",
+      "rationale": "Receiving, verifying and resolving disclosed vulnerabilities overlaps vulnerability identification, validation and remediation.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-6",
+      "targetId": "pspf:req 99",
+      "reference": "Req 99",
+      "rationale": "Application patching overlaps vulnerability remediation; its E8 maturity requirement remains distinct.",
+      "limitation": "The source requires E8 Maturity Level Two; this link makes no maturity-to-effectiveness conversion and does not supersede that obligation."
+    },
+    {
+      "principleId": "asd-principles:pro-7",
+      "targetId": "pspf:req 103",
+      "reference": "Req 103",
+      "rationale": "Application control overlaps restricting software execution to authorised software; its E8 maturity requirement remains distinct.",
+      "limitation": "The source requires E8 Maturity Level Two; this link makes no maturity-to-effectiveness conversion and does not supersede that obligation."
+    },
+    {
+      "principleId": "asd-principles:pro-9",
+      "targetId": "pspf:req 108",
+      "reference": "Req 108",
+      "rationale": "Preventing connections to known malicious endpoints overlaps filtering unsafe information flows.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-10",
+      "targetId": "pspf:req 106",
+      "reference": "Req 106",
+      "rationale": "The regular-backup obligation overlaps the principle’s backup topic; its E8 maturity requirement remains distinct.",
+      "limitation": "The source requires E8 Maturity Level Two; this link makes no maturity-to-effectiveness conversion and does not supersede that obligation."
+    },
+    {
+      "principleId": "asd-principles:pro-12",
+      "targetId": "pspf:req 102",
+      "reference": "Req 102",
+      "rationale": "Restricting administrative privileges overlaps least privilege access; its E8 maturity requirement remains distinct.",
+      "limitation": "The source requires E8 Maturity Level Two; this link makes no maturity-to-effectiveness conversion and does not supersede that obligation."
+    },
+    {
+      "principleId": "asd-principles:pro-13",
+      "targetId": "pspf:req 101",
+      "reference": "Req 101",
+      "rationale": "Multi-factor authentication overlaps secure authentication within identity and access management; its E8 maturity requirement remains distinct.",
+      "limitation": "The source requires E8 Maturity Level Two; this link makes no maturity-to-effectiveness conversion and does not supersede that obligation."
+    },
+    {
+      "principleId": "asd-principles:pro-14",
+      "targetId": "pspf:req 24",
+      "reference": "Req 24",
+      "rationale": "Security awareness at engagement and annually overlaps ongoing awareness training for personnel.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-14",
+      "targetId": "pspf:req 25",
+      "reference": "Req 25",
+      "rationale": "Targeted training for specialist or high-risk positions overlaps awareness training tailored to duties and access.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-15",
+      "targetId": "pspf:req 205",
+      "reference": "Req 205",
+      "rationale": "Controlling personnel, vehicle and equipment access to security zones overlaps restricting physical access.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-15",
+      "targetId": "pspf:req 208",
+      "reference": "Req 208",
+      "rationale": "Security alarm controls against unauthorised zone access overlap monitoring physical access.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-16",
+      "targetId": "pspf:req 42",
+      "reference": "Req 42",
+      "rationale": "Supplier contracts requiring incident reporting and cooperation overlap coordinated supply-chain incident response.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:res-1",
+      "targetId": "pspf:req 27",
+      "reference": "Req 27",
+      "rationale": "Integrating incident-response plans into business continuity overlaps planning to sustain operations during incidents.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:res-1",
+      "targetId": "pspf:req 55",
+      "reference": "Req 55",
+      "rationale": "A maintained continuity plan for disruptions to critical services overlaps business continuity and recovery planning.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:res-2",
+      "targetId": "pspf:req 28",
+      "reference": "Req 28",
+      "rationale": "Reporting significant incidents to relevant authorities within applicable timeframes overlaps timely external incident reporting.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:res-3",
+      "targetId": "pspf:req 26",
+      "reference": "Req 26",
+      "rationale": "Maintained procedures for responding to and managing security incidents overlap the incident-response process topic.",
+      "limitation": "The linked statements address response or recovery processes but do not independently demonstrate containment, eradication and recovery effectiveness."
+    },
+    {
+      "principleId": "asd-principles:res-5",
+      "targetId": "pspf:req 42",
+      "reference": "Req 42",
+      "rationale": "Contractual supplier reporting and investigation cooperation overlap external incident coordination responsibilities.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-4",
+      "targetId": "asd-strategies:s04",
+      "reference": "S04",
+      "rationale": "Disabling unnecessary application features overlaps secure configuration and reduction of attack surface.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-4",
+      "targetId": "asd-strategies:s11",
+      "reference": "S11",
+      "rationale": "Operating-system hardening to a standard environment overlaps approved secure configurations.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-6",
+      "targetId": "asd-strategies:s02",
+      "reference": "S02",
+      "rationale": "Risk-prioritised application patching overlaps timely remediation of system vulnerabilities.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-6",
+      "targetId": "asd-strategies:s19",
+      "reference": "S19",
+      "rationale": "Risk-prioritised operating-system patching overlaps timely remediation of system vulnerabilities.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-7",
+      "targetId": "asd-strategies:s01",
+      "reference": "S01",
+      "rationale": "Application control preventing unapproved programs directly overlaps restricting software execution to authorised software.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-8",
+      "targetId": "asd-strategies:s17",
+      "reference": "S17",
+      "rationale": "TLS between email servers overlaps protecting information in transit with encryption.",
+      "limitation": "Topic overlap does not establish identical cryptographic algorithms, authentication requirements or ASD approval."
+    },
+    {
+      "principleId": "asd-principles:pro-9",
+      "targetId": "asd-strategies:s06",
+      "reference": "S06",
+      "rationale": "Email attachment filtering and sanitisation overlap inspection and control of inbound information.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-9",
+      "targetId": "asd-strategies:s27",
+      "reference": "S27",
+      "rationale": "Outbound data loss prevention overlaps inspection and control of sensitive information leaving a security domain.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-10",
+      "targetId": "asd-strategies:s34",
+      "reference": "S34",
+      "rationale": "Regular isolated backups and restoration testing overlap secure, proven backups.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-12",
+      "targetId": "asd-strategies:s18",
+      "reference": "S18",
+      "rationale": "Duty-based administrative privileges and regular revalidation overlap least privilege access.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-13",
+      "targetId": "asd-strategies:s20",
+      "reference": "S20",
+      "rationale": "Multi-factor authentication for remote and privileged access overlaps secure authentication.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-13",
+      "targetId": "asd-strategies:s23",
+      "reference": "S23",
+      "rationale": "Protecting authentication credentials and changing defaults overlap secure credential management.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-14",
+      "targetId": "asd-strategies:s15",
+      "reference": "S15",
+      "rationale": "User education about phishing, passwords and unapproved services overlaps cyber security awareness training.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:pro-18",
+      "targetId": "asd-strategies:s22",
+      "reference": "S22",
+      "rationale": "Denying unnecessary traffic between computers directly overlaps network segmentation and controlled communication.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:det-1",
+      "targetId": "asd-strategies:s28",
+      "reference": "S28",
+      "rationale": "Centralised time-synchronised event logs overlap centralised security logging.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:det-2",
+      "targetId": "asd-strategies:s29",
+      "reference": "S29",
+      "rationale": "Host monitoring for anomalous execution overlaps detecting unexpected system behaviour.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:det-2",
+      "targetId": "asd-strategies:s32",
+      "reference": "S32",
+      "rationale": "Network monitoring for anomalous traffic overlaps cyber security event detection.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:det-3",
+      "targetId": "asd-strategies:s31",
+      "reference": "S31",
+      "rationale": "Threat-informed incident hunting overlaps identifying cyber security incidents.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    },
+    {
+      "principleId": "asd-principles:res-1",
+      "targetId": "asd-strategies:s35",
+      "reference": "S35",
+      "rationale": "Tested continuity and disaster recovery plans overlap planning for sustained and restored business operations.",
+      "limitation": "Partial topic overlap only; assess both requirements independently in their applicable scope."
+    }
+  ]
+}

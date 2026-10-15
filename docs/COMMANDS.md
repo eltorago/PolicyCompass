@@ -23,8 +23,9 @@ Download only the frameworks you need:
 python -m policycompass corpus update --framework wa-csp --framework ism --framework csf
 ```
 
-With no `--framework` argument, `corpus update` downloads all six automatic
-frameworks. It needs internet access. Later comparisons use the local copies.
+With no `--framework` argument, `corpus update` downloads all automatic framework
+choices, including the three ASD Essentials chapters and ASD cyber security
+principles. It needs internet access. Later comparisons use the local copies.
 AESCSF needs the Core workbook downloaded from AEMO:
 
 ```powershell
@@ -32,6 +33,8 @@ python -m policycompass corpus update --framework aescsf --import-file "C:/Downl
 ```
 
 See [framework sources](FRAMEWORKS.md) for the available editions and formats.
+The [Essentials guide](ESSENTIALS.md) has examples using `essentials-it`,
+`essentials-cloud`, `essentials-ot` and `asd-principles`.
 
 ## Compare documents
 
