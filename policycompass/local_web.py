@@ -196,7 +196,7 @@ class Workspace:
 
     def receive(self, stream, name, kind, length):
         allowed = {'policy': documents.INPUT_FORMATS, 'assessment': ('.policycompass',),
-                   'framework': ('.pdf', '.xlsx', '.json', '.html')}
+                   'framework': ('.pdf', '.xlsx', '.json', '.html', '.zip')}
         if (kind not in allowed or not name or len(name) > 200 or re.search(r'[\\/:\x00-\x1f<>"|?*]', name)
                 or name.endswith(('.', ' ')) or re.match(r'(?i)^(?:con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(?:\.|$)', name)):
             raise PolicyError('Choose a supported file with a normal filename.', 2)

@@ -300,7 +300,7 @@ class Desktop(ttk.Frame):
             return
         path = None
         if manual:
-            types = [('AESCSF Core workbook', '*.xlsx')] if framework == 'aescsf' else [('Publisher frameworks','*.pdf *.xlsx *.json *.html')]
+            types = [('AESCSF Core workbook', '*.xlsx')] if framework == 'aescsf' else [('Publisher frameworks','*.pdf *.xlsx *.json *.html *.zip')]
             path = filedialog.askopenfilename(parent=self, title='Select AESCSF Core workbook' if framework == 'aescsf' else 'Select framework file', filetypes=types)
             if not path:
                 return

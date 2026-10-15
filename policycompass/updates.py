@@ -21,7 +21,7 @@ from .reports import write_output
 from .frameworks import NAMES, AUTOMATIC, PAGES, FILENAMES, HOSTS, DIRECT_DOWNLOADS, REPOSITORY_PATHS
 
 ISM_CATALOG = DIRECT_DOWNLOADS['ism']
-IMPORT_VERSION = 'publisher-3'
+IMPORT_VERSION = 'publisher-4'
 
 
 def cache_root():
@@ -200,6 +200,7 @@ def update(frameworks=None, local_import=None, progress=None, cancel=None):
         raise PolicyError('Select a supported framework; local import accepts one framework at a time.', 2)
     root = cache_root()
     results = []
+    essentials_sources = None
     with update_lock(root):
         for key in selected:
             if cancel and cancel.is_set():
@@ -216,7 +217,13 @@ def update(frameworks=None, local_import=None, progress=None, cancel=None):
                     acquisition = 'User-selected local import; latest version not verified online'
                 else:
                     options = {'cancel': cancel} if cancel else {}
-                    body, uri = download(discover(key, **options), key, **options)
+                    if key.startswith('essentials-'):
+                        from .essentials_sources import acquire
+                        if essentials_sources is None:
+                            essentials_sources = acquire(download, cancel, progress)
+                        body, uri = essentials_sources, PAGES[key]
+                    else:
+                        body, uri = download(discover(key, **options), key, **options)
                     acquisition = 'Downloaded from official publisher source'
                 if cancel and cancel.is_set():
                     raise KeyboardInterrupt

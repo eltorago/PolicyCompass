@@ -48,6 +48,20 @@ To create and close an isolated workspace automatically, use
 `core/policycompass.exe` to exercise the release. Playwright must be installed in
 a location Node.js can resolve, such as a test-only directory on `NODE_PATH`.
 
+The Essentials workflow check uses the eight fictional policies and an existing
+cache containing all eleven framework choices:
+
+```powershell
+python tools/run_browser_check.py --essentials-cache path/to/framework-cache
+```
+
+It checks chapter domains and phases, source references, blank cloud responsibility
+markers, four report formats, an unrelated document, saved history and reimport.
+The comparison workspace is temporary and the supplied cache is read without
+updating it. The expected counts describe the October 2026 source set; review
+publisher changes before changing those expectations. Screenshots and downloaded
+reports are written under `data/local/browser-check`.
+
 For compiled releases, run `tools/smoke_release.py` as described in
 [Windows builds](../docs/BUILD.md#check-the-build). It exercises document workers
 without relying on the developer's Python environment or publisher files.

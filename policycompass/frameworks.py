@@ -3,6 +3,10 @@
 NAMES = {
     'wa-csp': 'WA CSP',
     'ism': 'ASD ISM',
+    'asd-principles': 'ASD cyber security principles',
+    'essentials-it': 'ASD Essentials — enterprise IT',
+    'essentials-cloud': 'ASD Essentials — cloud',
+    'essentials-ot': 'ASD Essentials — OT',
     'aescsf': 'AESCSF',
     'asd-strategies': 'ASD mitigation strategies',
     'csf': 'NIST CSF 2.0',
@@ -47,3 +51,15 @@ REPOSITORY_PATHS = {
     'ism': '/AustralianCyberSecurityCentre/ism-oscal/',
     'nist-800-53': '/usnistgov/oscal-content/',
 }
+
+# Principles keep their own publisher labels and do not inflate ISM control totals.
+PAGES['asd-principles'] = PAGES['ism']
+FILENAMES['asd-principles'] = FILENAMES['ism']
+HOSTS['asd-principles'] = HOSTS['ism']
+DIRECT_DOWNLOADS['asd-principles'] = DIRECT_DOWNLOADS['ism']
+REPOSITORY_PATHS['asd-principles'] = REPOSITORY_PATHS['ism']
+for key, slug in (('essentials-it', 'essentials-for-enterprise-it'),
+                  ('essentials-cloud', 'essentials-for-cloud'), ('essentials-ot', 'essentials-for-ot')):
+    PAGES[key] = 'https://www.cyber.gov.au/publication/' + slug
+    FILENAMES[key] = 'essentials-sources.zip'
+    HOSTS[key] = {'www.cyber.gov.au'}

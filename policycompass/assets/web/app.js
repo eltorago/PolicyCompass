@@ -59,7 +59,7 @@ function heading(title, subtitle) {
 function date(value) { return new Date(value).toLocaleString('en-AU'); }
 function badge(value) { return el('span', {class:'badge ' + statusClass(value)}, value); }
 function locationText(locator) {
-  return Object.entries(locator || {}).filter(([key, value]) => value !== null && !['start','end','boundingBox'].includes(key))
+  return Object.entries(locator || {}).filter(([key, value]) => value !== null && !['start','end','boundingBox','uri','sourceHash','sourceFile','jsonPointer'].includes(key))
     .map(([key,value]) => `${key}: ${value}`).join(' · ');
 }
 function link(label, url) {
@@ -92,7 +92,7 @@ async function json(path, data) { return (await api(path, data)).json(); }
 async function upload(file, kind) {
   const limit = kind === 'assessment' ? 128 : 16;
   if (!file.size || file.size > limit * 1024 * 1024) throw new Error(`Choose a non-empty file no larger than ${limit} MiB.`);
-  const allowed = {policy:/\.(pdf|docx|txt|md|zip)$/i, framework:/\.(pdf|xlsx|json|html)$/i, assessment:/\.policycompass$/i};
+  const allowed = {policy:/\.(pdf|docx|txt|md|zip)$/i, framework:/\.(pdf|xlsx|json|html|zip)$/i, assessment:/\.policycompass$/i};
   if (!allowed[kind]?.test(file.name)) throw new Error('This file type is not supported for that import.');
   return (await api('/api/upload?' + new URLSearchParams({name:file.name, kind}), undefined,
     {method:'POST', headers:{'Content-Type':'application/octet-stream'}, body:file})).json();
@@ -284,7 +284,7 @@ function renderFrameworks() {
       await jobStarted(await json('/api/update', {frameworks:selectedFrameworks(automatic)})); notice('');
     }, '', true)), results);
   const manualKey = select(state.status.frameworks.map(fw => [fw.id, fw.title]), 'aescsf', {'aria-label':'Framework to import'});
-  const manualFile = el('input', {type:'file', accept:'.pdf,.xlsx,.json,.html', 'aria-label':'Downloaded framework file', 'data-mutates':'true'});
+  const manualFile = el('input', {type:'file', accept:'.pdf,.xlsx,.json,.html,.zip', 'aria-label':'Downloaded framework file', 'data-mutates':'true'});
   const importCard = el('section', {class:'card'}, el('h2', {}, 'Import a publisher file'),
     el('p', {}, 'For AESCSF, download the Core workbook from AEMO, then select it below. No renaming or moving files is needed.'),
     el('p', {}, link('Open the AEMO download page', state.status.frameworks.find(fw => fw.id === 'aescsf').source)),
@@ -359,15 +359,25 @@ function renderResultsTab(content, report, runs, tabs) {
     content.append(el('section', {class:'card'}, el('h2', {}, 'Framework relationships'),
       el('p', {class:'muted'}, 'These links provide context. A link does not count as policy evidence or transfer a result between frameworks.'),
       report.mappings.length ? el('div', {class:'table-wrap'}, el('table', {}, el('thead', {}, el('tr', {},
-        ['Source', 'Relationship', 'Target'].map(label => el('th', {}, label)))),
-        el('tbody', {}, report.mappings.map(row => el('tr', {}, el('td', {}, row.source), el('td', {}, row.relationship), el('td', {}, row.target)))))) :
-        el('p', {}, 'No publisher relationships are included between the frameworks in this run.')));
+        ['Source', 'Relationship', 'Target', 'Basis and edition'].map(label => el('th', {}, label)))),
+        el('tbody', {}, report.mappings.map(row => el('tr', {}, el('td', {}, row.source), el('td', {}, row.relationship), el('td', {}, row.target),
+          el('td', {}, row.provenance, el('br'), row.reviewStatus,
+            row.sourceReference ? el('p', {}, link('Publisher source', row.sourceReference.sourceUri)) : null)))))) :
+        el('p', {}, 'No relationships are included between the frameworks in this run.')),
+      el('p', {class:'note'}, 'References to frameworks outside this comparison, or to absent requirements, remain under each requirement’s Framework source references. Shared principles connect chapter actions; they do not make those actions interchangeable.'));
   } else if (state.tab === 'Reports') renderReports(content, report);
   else if (state.tab === 'History') {
     content.append(el('section', {class:'card'}, el('h2', {}, 'Saved runs'), el('p', {class:'muted'}, 'Each run keeps its document text, results and framework editions. Download comparison includes the full history.'),
       [...runs].reverse().map((run, index) => el('div', {class:'history-item'}, el('div', {}, el('strong', {}, date(run.createdAt)), el('br'),
         el('small', {}, index === 0 ? 'Latest saved run' : 'Earlier run')), run.id === report.runId ? badge('Currently open') :
         button('Open run', () => openComparison(state.comparison.id, run.id), 'secondary')))));
+  }
+  if (state.tab === 'Overview') {
+    const sources = report.versions.frameworks.filter(fw => fw.notices?.length || fw.resources?.length);
+    if (sources.length) content.append(el('section', {class:'card'}, el('h2', {}, 'Framework source notes'),
+      sources.map(fw => el('details', {}, el('summary', {}, fw.title),
+        (fw.notices || []).map(note => el('p', {}, note)),
+        (fw.resources || []).map(resource => el('p', {}, link(resource.title, resource.pageUri || resource.uri)))))));
   }
 }
 function renderRequirements(container, report) {
@@ -376,12 +386,17 @@ function renderRequirements(container, report) {
   const search = el('input', {type:'search', class:'search', placeholder:'Search requirement wording or reference', 'aria-label':'Search requirements'});
   const framework = select([['','All frameworks'], ...report.versions.frameworks.map(fw => [fw.id, fw.title])], '', {'aria-label':'Filter by framework'});
   const status = select([['','All statuses'], ...statuses.map(value => [value,value])], gaps ? 'Not mentioned' : '', {'aria-label':'Filter by alignment status'});
+  const domains = [...new Set(report.requirements.flatMap(row => row.essentials?.domains || []))].sort();
+  const domain = select([['','All Essentials domains'], ...domains.map(value => [value,value])], '', {'aria-label':'Filter by Essentials domain'});
+  const phase = select([['','All priority phases'], ['1','Phase 1'], ['2','Phase 2'], ['3','Phase 3']], '', {'aria-label':'Filter by priority phase'});
   const body = el('tbody'); const pager = el('div', {class:'pager'}); const detail = el('div', {class:'details'});
   let page = 0;
   function render() {
     const query = search.value.trim().toLocaleLowerCase();
     const rows = report.requirements.filter(row => (!framework.value || row.frameworkId === framework.value)
       && (!status.value || row.alignment.status === status.value)
+      && (!domain.value || row.essentials?.domains.includes(domain.value))
+      && (!phase.value || Object.entries(row.essentials?.phases || {}).some(([key, values]) => (!domain.value || key === domain.value) && values.includes(Number(phase.value))))
       && (!query || [row.id,row.authoritativeText,row.heading,row.context].join(' ').toLocaleLowerCase().includes(query)));
     const pages = Math.max(1, Math.ceil(rows.length / 75)); page = Math.min(page,pages - 1);
     body.replaceChildren(...rows.slice(page*75, page*75+75).map(row => el('tr', {},
@@ -396,6 +411,8 @@ function renderRequirements(container, report) {
   let searchTimer;
   search.addEventListener('input', () => {clearTimeout(searchTimer);searchTimer=setTimeout(() => {page=0;render();},150);});
   framework.addEventListener('change', () => {page=0;render();}); status.addEventListener('change', () => {page=0;render();});
+  domain.addEventListener('change', () => {page=0;render();}); phase.addEventListener('change', () => {page=0;render();});
+  if (domains.length) card.append(el('p', {class:'note'}, 'Essentials phases describe implementation order. These filters change the view; the comparison still includes every action in the selected chapters.'), el('div', {class:'filters'}, domain, phase));
   card.append(el('div', {class:'filters'}, search, framework, status), el('div', {class:'table-wrap'}, el('table', {},
     el('thead', {}, el('tr', {}, ['Reference', 'Framework requirement', 'Alignment', 'Passages'].map(label => el('th', {}, label)))), body)), pager);
   container.append(card, detail); render();
@@ -412,7 +429,15 @@ function renderRequirementDetail(container, row, report) {
   container.replaceChildren(el('section', {class:'card'}, el('div', {class:'row spread'}, el('h2', {}, row.id), badge(row.alignment.status)),
     row.heading ? el('p', {class:'muted'}, row.heading) : null,
     row.context ? el('p', {class:'passage muted'}, row.context) : null, el('p', {class:'passage'}, row.authoritativeText),
-    el('p', {class:'locator'}, locationText(row.sourceLocator)), el('h3', {}, 'Matching policy passages'),
+    el('p', {class:'locator'}, locationText(row.sourceLocator)),
+    row.sourceLocator.uri ? el('p', {}, link('Read the publisher source', row.sourceLocator.uri + (row.sourceLocator.page ? '#page=' + row.sourceLocator.page : ''))) : null,
+    essentialsDetail(row),
+    row.frameworkReferences?.length ? el('details', {}, el('summary', {}, 'Framework source references'),
+      el('p', {class:'muted'}, 'Potential evidence and topic links need review. They do not establish equivalent controls or transfer a result.'),
+      row.frameworkReferences.map(ref => el('p', {}, el('strong', {}, `${ref.kind}: ${ref.frameworkId} ${ref.reference}`), el('br'),
+        `${ref.basis} · Target edition: ${ref.targetEdition || 'Not stated'} · ${ref.status || 'Not resolved'}`, el('br'),
+        link('Source', ref.sourceUri)))) : null,
+    el('h3', {}, 'Matching policy passages'),
     row.alignment.matches.length ? row.alignment.matches.map(match => el('article', {class:'card'},
       el('div', {class:'row spread'}, el('strong', {}, match.documentName), badge(match.status)),
       el('p', {class:'locator'}, locationText(match.locator)), highlighted(match.excerpt, match.matchedSpans),
@@ -420,8 +445,23 @@ function renderRequirementDetail(container, row, report) {
       button('Read extracted document', async () => {
         const doc = await json('/api/document?' + params({document:match.documentId})); showDocument(container, doc);
       }, 'quiet'))) : el('p', {class:'muted'}, row.alignment.searchComplete ? 'No matching passage was found in the selected documents.' : 'Some text could not be checked. Review the document read statuses.'),
-    report.mappings.filter(edge => edge.source === row.id || edge.target === row.id).map(edge => el('p', {class:'note'}, `${edge.source} → ${edge.target}: ${edge.relationship}`))));
+    report.mappings.filter(edge => edge.source === row.id || edge.target === row.id).map(edge => el('p', {class:'note'}, `${edge.source} → ${edge.target}: ${edge.relationship}. ${edge.provenance}. ${edge.reviewStatus}`))));
   container.scrollIntoView({block:'start'});
+}
+function essentialsDetail(row) {
+  const value = row.essentials;
+  if (!value) return null;
+  const responsibility = value.sharedResponsibility;
+  return el('div', {class:'note'}, el('h3', {}, `${value.chapter} · Shared ISM principle ${value.principleReference}`),
+    el('p', {}, value.principleText), el('p', {}, `Domains: ${value.domains.join(', ')}`),
+    el('p', {}, 'Priority phases: ' + Object.entries(value.phases).map(([domain, phases]) => `${domain}: ${phases.join(', ')}`).join('; ')),
+    el('p', {class:'muted'}, `Reference: ${value.referenceKind}. Policy wording is not an ASD effectiveness assessment.`),
+    responsibility ? el('p', {}, `Indicative cloud responsibility — PaaS: ${responsibility.paas || 'Not stated'}; SaaS: ${responsibility.saas || 'Not stated'}. C: customer operates; S: provider supplies, customer configures and operates; P: provider operates, customer verifies assurance.`) : null,
+    value.evidenceActionText && value.evidenceActionText !== row.authoritativeText ? el('details', {}, el('summary', {}, 'Evidence guide wording differs'), el('p', {}, value.evidenceActionText)) : null,
+    value.evidencePrincipleText && value.evidencePrincipleText !== value.principleText ? el('details', {}, el('summary', {}, 'Evidence guide principle wording differs'), el('p', {}, value.evidencePrincipleText)) : null,
+    value.techniques?.length ? el('details', {}, el('summary', {}, 'ATT&CK techniques referenced by ASD'),
+      el('p', {class:'muted'}, 'These describe the threats addressed by this action. They are not separate requirements.'),
+      value.techniques.map(technique => el('p', {}, link(technique.label, technique.url)))) : null);
 }
 function renderDocuments(container, report) {
   const detail = el('div', {class:'details'});

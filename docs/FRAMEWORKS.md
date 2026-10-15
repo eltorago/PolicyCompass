@@ -9,6 +9,8 @@ fails or the app cannot read the new file, it keeps the current version.
 |---|---|---|
 | WA CSP | [WA Government policy page](https://www.wa.gov.au/government/publications/wa-government-cyber-security-policy), PDF | Numbered requirements, including nested controls in the 2026 policy |
 | ASD ISM | [ASD OSCAL releases](https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/ism-oscal-releases), JSON from ASD's GitHub mirror | ISM security controls |
+| ASD Cyber Security Principles | The same official ISM catalogue | 49 principles; 41 are used by the three Essentials chapters |
+| ASD Essentials | [ASD reading guide](https://www.cyber.gov.au/publication/essentials-reading-guide), chapter PDFs and supporting publications | 58 enterprise IT actions, 78 cloud actions and 61 OT actions, selected as separate chapters |
 | ASD mitigation strategies | [ASD strategies](https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/mitigating-cyber-security-incidents/strategies-to-mitigate-cybersecurity-incidents), HTML | The 37 strategies in the February 2017 publication |
 | NIST CSF | [NIST CSF](https://www.nist.gov/cyberframework), CPRT Excel export | Active CSF 2.0 subcategories; function and category headings provide context |
 | PSPF | [2026 List of Requirements](https://www.protectivesecurity.gov.au/publications-library/pspf-release-2026-list-requirements), PDF | Active numbered requirements; recommended approaches and retired entries are excluded |
@@ -45,6 +47,46 @@ The eight strategies rated **Essential** can be found in their source context.
 The February 2017 strategies are shown with that edition; the app does not rewrite
 the historical publication with newer ISM wording.
 
+ASD is maintaining Essential Eight alongside Essentials during the transition.
+Existing regulatory and contractual obligations still need to be checked with
+the relevant authority. An Essential Eight maturity result does not convert to an
+Essentials effectiveness rating. See ASD's
+[transition guidance](https://www.cyber.gov.au/publication/transitioning-from-the-essential-eight).
+
+## ASD Essentials
+
+Choose `essentials-it`, `essentials-cloud` or `essentials-ot`. Each choice downloads
+the complete set of 17 public PDFs, the enterprise IT assessment workbook and the
+ISM catalogue used for principle definitions. The app saves these source files
+and their fingerprints together in a local ZIP snapshot. When several chapters
+are updated together, they use the same download collection.
+
+The supported Essentials edition is **15 October 2026**. PolicyCompass uses the
+PDF chapter wording for comparison and records source pages. This is the app's
+source-selection rule: ASD's HTML pages, PDFs and workbook contain some different
+wording. Those differences are recorded in [source notes](ESSENTIALS-SOURCES.md).
+A changed edition or unreadable collection leaves the installed version in place.
+
+The separate `asd-principles` choice compares policies with all 49 ISM principles.
+Essentials rows include the relevant principle, chapter domains, priority phases
+and, for cloud, the published shared-responsibility markers. Domain and phase
+filters change the results view; they do not remove actions from a comparison or
+assign an effectiveness rating.
+
+The enterprise IT evidence guide supplies potential evidence references to ISM,
+Essential Eight, NIST CSF, SP 800-171r3 and AESCSF. The app retains the source and
+edition for each reference. SP 800-171r3 is an external reference because it is
+not an available comparison framework. Published CSF links to SP 800-53 are also
+retained where the downloaded catalogue supplies them.
+
+Suggested topic links to WA CSP, PSPF and the ASD mitigation strategies are
+PolicyCompass interpretations that need human review. They are kept separate
+from publisher references. A relationship never transfers a policy match or a
+rating between frameworks. A missing target framework, changed edition or absent
+reference is reported rather than silently treated as a match.
+
+See [using Essentials](ESSENTIALS.md) for chapter selection and reading results.
+
 ## AESCSF import
 
 1. Open **Framework updates → Open AEMO download page**.
@@ -73,6 +115,8 @@ become an extra control in the comparison. NIST placeholders stay visible where
 the organisation must choose a value, such as a review interval.
 
 Publisher files and extracted text stay in the local cache and are not bundled
-with the application. Matches show shared wording. Reviewers need to check meaning,
+with the application. After downloading, comparisons can run offline. Saved runs
+retain their original framework wording and results when the local cache changes.
+Matches show shared wording. Reviewers need to check meaning,
 scope and evidence that controls work. The [matching guide](MATCHING.md) explains
 the result labels and common reasons for missed matches.

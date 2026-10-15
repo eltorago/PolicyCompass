@@ -17,13 +17,17 @@ access; document matching runs locally without an AI service.
 - **Prepare for an audit.** Give reviewers a report linking framework requirements
   to specific policy passages, then check the evidence and record what needs work.
 - **Plan a framework transition.** Compare your existing policies with the 2026 WA
-  Cyber Security Policy and use the unmatched requirements to organise the review.
+  Cyber Security Policy or ASD Essentials and use the unmatched requirements to
+  organise the review.
 - **Check a draft revision.** Run the revised documents through the same framework,
   keep the earlier comparison in History, and compare the exported reports.
 - **Answer different reporting needs.** Assess the same documents against ISM,
   NIST CSF and other frameworks, then export a separate report for each audience.
 - **Focus an Essential Eight review.** Select the ISM controls for ML1, ML2 or ML3
   and see which ones your documents discuss. The filter does not assign a maturity rating.
+- **Review different technology environments.** Compare policies with the
+  enterprise IT, cloud or operational technology chapters of ASD Essentials, then
+  use their domains and priority phases to organise the findings.
 
 ## Frameworks
 
@@ -31,6 +35,8 @@ access; document matching runs locally without an AI service.
 |---|---|
 | WA Government Cyber Security Policy, including the 2026 edition | Download from WA Government |
 | ASD Information Security Manual (ISM) | Download from ASD; includes Essential Eight maturity filters |
+| ASD Cyber Security Principles | Download the 49 principles from the ISM catalogue |
+| ASD Essentials: enterprise IT, cloud and operational technology | Download the complete ASD publication collection; select chapters separately |
 | ASD Strategies to Mitigate Cyber Security Incidents | Download the published February 2017 strategies, including the Essential Eight |
 | NIST Cybersecurity Framework 2.0 | Download the NIST workbook |
 | Protective Security Policy Framework (PSPF) | Download the 2026 List of Requirements |
@@ -41,6 +47,11 @@ The app records the edition used in each comparison. Essential Eight is availabl
 through ISM maturity filters and the ASD strategies, rather than as a duplicate
 framework. Framework requirements are assessed independently; a match in one does
 not automatically count as a match in another.
+
+The [Essentials guide](docs/ESSENTIALS.md) explains chapter selection, the 197
+published actions and links to other frameworks. The app shows potential evidence
+sources and suggested topic links separately. Those links help a reviewer find
+related material; they do not establish that two requirements are equivalent.
 
 ## Start a comparison
 
@@ -59,7 +70,8 @@ The portable ZIP is also available. Extract the entire folder and open
    then choose **Import AESCSF workbook**. Select the downloaded file as it is;
    there is no need to rename it or put it in a particular folder.
 3. Choose **New comparison**, describe the documents you are reviewing, and select
-   your frameworks. If using ISM, choose all controls or an Essential Eight maturity level.
+   your frameworks. If using ISM, choose all controls or an Essential Eight maturity
+   level. For Essentials, choose any combination of enterprise IT, cloud and OT.
 4. Add your files or ZIP archives, then choose **Compare and save**.
 
 Comparisons are saved automatically in the local workspace. Use **Saved
@@ -107,6 +119,13 @@ For ISM controls associated with Essential Eight ML2:
 ```powershell
 python -m policycompass corpus update --framework ism
 python -m policycompass compare policies.zip --framework ism --ism-maturity ML2 --scope "Essential Eight policy review" --assessment essential-eight.policycompass
+```
+
+For an Essentials review across enterprise IT and cloud:
+
+```powershell
+python -m policycompass corpus update --framework essentials-it --framework essentials-cloud --framework asd-principles
+python -m policycompass compare policies.zip --framework essentials-it --also-assess essentials-cloud --also-assess asd-principles --scope "Enterprise IT and cloud policies" --assessment essentials.policycompass
 ```
 
 See [commands and file limits](docs/COMMANDS.md) and [framework sources](docs/FRAMEWORKS.md).

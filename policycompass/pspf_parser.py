@@ -4,6 +4,36 @@ import re
 from .contracts import PolicyError
 
 
+def _tables(page, columns):
+    """Keep text crossing a row border with the row where the line starts."""
+    if not hasattr(page, 'find_tables'):
+        return page.extract_tables()
+    from pdfplumber.utils import extract_text
+
+    result = []
+    for table in page.find_tables():
+        values = table.extract()
+        for cells, geometry in zip(values, table.rows):
+            first = (cells[0] or '').strip() if cells else ''
+            if first == 'Req Number':
+                columns = [' '.join((cell or '').split()) for cell in cells]
+            if not first.isdigit() or not columns:
+                continue
+            index = next((i for i, name in enumerate(columns)
+                          if re.fullmatch(r'Release \d+ Requirement', name)), None)
+            if index is None or index >= len(geometry.cells) or geometry.cells[index] is None:
+                continue
+            left, top, right, bottom = geometry.cells[index]
+            # Table.extract assigns a character by its vertical midpoint. In the
+            # July 2026 PDF a final line of retired Req 92 crosses the border and
+            # is consequently attached to Req 93. Its top edge retains its row.
+            chars = [c for c in page.chars if left <= (c['x0'] + c['x1']) / 2 < right
+                     and top <= c['top'] < bottom]
+            cells[index] = extract_text(chars) if chars else ''
+        result.append(values)
+    return result
+
+
 def parse(path):
     import pdfplumber
 
@@ -15,7 +45,7 @@ def parse(path):
         if len(pdf.pages) > 100:
             raise PolicyError('PSPF file exceeds the supported page limit.')
         for number, page in enumerate(pdf.pages, 1):
-            for table in page.extract_tables():
+            for table in _tables(page, columns):
                 for cells in table:
                     cells = [' '.join((cell or '').split()) for cell in cells]
                     first = cells[0] if cells else ''

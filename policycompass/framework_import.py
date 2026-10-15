@@ -43,6 +43,8 @@ def control_rows(existing, framework):
             row['ismMaturityLevels'] = c.publisher_tags.get('essential-eight-applicability', [])
             if isinstance(row['ismMaturityLevels'], str):
                 row['ismMaturityLevels'] = [row['ismMaturityLevels']]
+        if c.attributes.get('frameworkReferences'):
+            row['frameworkReferences'] = deepcopy(c.attributes['frameworkReferences'])
         rows.append(row)
     return rows
 
@@ -77,6 +79,27 @@ def parse(framework, path):
         from .pspf_parser import parse as parse_pspf
         metadata, rows = parse_pspf(path)
         mappings = []
+    elif framework.startswith('essentials-'):
+        from .essentials_sources import unpack
+        from .essentials_parser import parse as parse_essentials
+        files, manifest = unpack(raw)
+        metadata, rows, mappings = parse_essentials(files, manifest, framework)
+    elif framework == 'asd-principles':
+        from framework_core.model import Corpus
+        from framework_core.registry import FRAMEWORKS_BY_KEY
+        from framework_core.loaders import oscal, principles
+        existing = Corpus()
+        ism = deepcopy(FRAMEWORKS_BY_KEY['ism'])
+        fw = deepcopy(FRAMEWORKS_BY_KEY['asd-principles'])
+        existing.add_framework(ism)
+        existing.add_framework(fw)
+        value = json.loads(raw)
+        if 'information security manual' not in value.get('catalog', {}).get('metadata', {}).get('title', '').casefold():
+            raise PolicyError('The download is not the ISM principles catalogue.')
+        oscal.load_into(existing, ism, str(path), applicability_prop='applicability')
+        principles.partition(existing, fw)
+        metadata = dict(id=framework, title=fw.name, edition=ism.revision or '')
+        rows, mappings = control_rows(existing, framework), []
     elif framework in ('ism', 'aescsf', 'csf', 'nist-800-53', 'asd-strategies'):
         from framework_core.model import Corpus
         from framework_core.registry import FRAMEWORKS_BY_KEY
@@ -112,6 +135,24 @@ def parse(framework, path):
                 raise PolicyError('The workbook must identify NIST Cybersecurity Framework 2.0.')
             if counts['subcategories'] != len(controls_for_comparison(existing, framework)):
                 raise PolicyError('The workbook has duplicate or empty CSF subcategories.')
+            # Preserve references even when the target is not selected.
+            for values in list(Workbook(str(path)).rows('CSF 2.0'))[2:]:
+                values = list(values) + [''] * 5
+                match = csf._SUB_ID.match(values[2].strip())
+                if not match or csf._WITHDRAWN.match(match.group(2)):
+                    continue
+                control = existing.controls.get('csf:' + normalise_identifier(match.group(1)))
+                if control is None:
+                    continue
+                refs = control.attributes.setdefault('frameworkReferences', [])
+                for label, target in csf.parse_references(values[4]):
+                    if label == 'SP 800-53 Rev 5.2.0':
+                        refs.append(dict(frameworkId='nist-800-53', reference=target,
+                            targetId='nist-800-53:' + normalise_identifier(target), targetEdition='5.2.0',
+                            sourceUri='https://csrc.nist.gov/extensions/nudp/services/json/csf/download?olirids=all',
+                            sourceHash=digest, sourceEdition='2.0', kind='Publisher',
+                            basis='NIST CPRT informative reference: ' + label,
+                            relationship='InformativeReference'))
         else:
             check_workbook(raw)
             aescsf.load_into(existing, fw, str(path))
@@ -120,10 +161,14 @@ def parse(framework, path):
             indexes = {name:i for i,name in enumerate(headings)}
             for values in body:
                 practice = values[indexes['Practice ID']].strip()
+                control = existing.controls.get('aescsf:' + normalise_identifier(practice))
                 for ism, _ in aescsf.parse_australian_references(values[indexes['Australian References']]):
-                    mappings.append(dict(source='aescsf:' + normalise_identifier(practice), target='ism:' + normalise_identifier(ism),
-                                         relationship='RelatedTo', relation='MappedOnly', provenance='AEMO Australian References column',
-                                         reviewStatus='Publisher mapping; target edition may differ'))
+                    if control:
+                        control.attributes.setdefault('frameworkReferences', []).append(dict(frameworkId='ism', reference=ism,
+                            targetId='ism:' + normalise_identifier(ism), targetEdition='',
+                            sourceUri=fw.source_url or '', sourceHash=digest, sourceEdition=fw.revision or '',
+                            kind='Publisher', basis='AEMO Australian References column; target edition not specified',
+                            relationship='RelatedTo'))
         metadata = dict(id=framework,title=fw.name,edition=fw.revision or '')
         rows = control_rows(existing, framework)
     else:
@@ -132,5 +177,9 @@ def parse(framework, path):
         raise PolicyError('Framework has no edition, invalid counts or duplicate requirements.')
     if sum(len(r['authoritativeText']) + len(r['context']) for r in rows) > 8_000_000:
         raise PolicyError('Framework text exceeds supported limits.')
-    metadata.update(sourceHash=digest, sourceFile=path.name, licence='Publisher source imported locally; redistribution permission is not granted by this import.')
+    metadata.update(sourceHash=digest, sourceFile=path.name)
+    metadata.setdefault('licence', 'Publisher source imported locally; redistribution permission is not granted by this import.')
+    if framework == 'asd-principles':
+        from .principle_links import enrich
+        enrich(rows, metadata)
     return dict(framework=metadata, requirements=rows, mappings=mappings)
